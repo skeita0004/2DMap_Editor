@@ -53,6 +53,7 @@
     <ClCompile Include="Library\CsvReader.cpp">
       <Filter>Library</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Stage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Screen.h" />
@@ -117,6 +118,7 @@
     <ClInclude Include="Library\CsvReader.h">
       <Filter>Library</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Stage.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Library">
@@ -134,5 +136,8 @@
     <Filter Include="ImGui">
       <UniqueIdentifier>{a717257b-67b3-4bfa-834c-1e34032b33b0}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\img\bg.png" />
   </ItemGroup>
 </Project>
