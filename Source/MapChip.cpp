@@ -13,7 +13,8 @@ namespace
 	const int MAP_WINDOW_HEIGHT = { IMAGE_SIZE * MAP_CHIP_NUM_HEIGHT };
 }
 
-MapChip::MapChip()
+MapChip::MapChip() :
+	GameObject()
 {
 	hImage_ = std::vector<int>(MAP_WIDTH * MAP_HEIGHT, -1);
 
@@ -47,15 +48,14 @@ void MapChip::Draw()
 	int TOP_LEFT_Y = 0;
 	int RIGHT_BOTTOM_X = Screen::WIDTH;
 	int RIGHT_BOTTOM_Y = MAP_WINDOW_HEIGHT;
-	int graph = 0;
-	graph = MakeScreen(MAP_WIDTH * IMAGE_SIZE, MAP_HEIGHT * IMAGE_SIZE, TRUE);
-	for (int x = 0; x < MAP_WIDTH; x++)
+	
+	for (int y = 0; y < MAP_CHIP_NUM_HEIGHT; y++)
 	{
-		for (int y = 0; y < MAP_HEIGHT; y++)
+		for (int x = 0; x < MAP_CHIP_NUM_WIDTH; x++)
 		{
 			// ‘S•”o‚Ä‚±‚È‚¢
-			DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE, TOP_LEFT_Y + y * IMAGE_SIZE,
-						hImage_[x + y * 8], TRUE);
+			DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE + 1, TOP_LEFT_Y + y * IMAGE_SIZE + 1,
+						hImage_[x + y * MAP_CHIP_NUM_WIDTH], TRUE);
 		}
 	}
 	DrawBox(TOP_LEFT_X, TOP_LEFT_Y, RIGHT_BOTTOM_X, RIGHT_BOTTOM_Y, 0xff0000, FALSE, 3);
