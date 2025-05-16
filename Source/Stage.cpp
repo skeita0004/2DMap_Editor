@@ -1,4 +1,6 @@
 #include "Stage.h"
+#include "Input.h"
+#include <DxLib.h>
 
 Stage::Stage() :
 	GameObject()
@@ -19,8 +21,7 @@ void Stage::Update()
 
 void Stage::Draw()
 {
-
-
+	printfDx("マウス：%d\n", Input::IsMouseDown(MOUSE_INPUT_LEFT));
 }
 
 //-----------//
