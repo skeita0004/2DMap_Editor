@@ -1,7 +1,7 @@
 #include "Input.h"
 #include "DxLib.h"
 
-namespace Input 
+namespace
 {
 	//キーボード取得関連
 	const int KEY_MAX = 255;
@@ -11,11 +11,11 @@ namespace Input
 	char key_up[KEY_MAX];		//離された瞬間 
 	char Key_Keep[KEY_MAX];		//押しっぱなし
 
-	int moucePrev = 0;
-	int mouceCurr = 0;
-	bool mouceDown;
-	bool mouceUp;
-	bool mouceHold;
+	int mousePrev = 0;
+	int mouseCurr = 0;
+	bool mouseDown;
+	bool mouseUp;
+	bool mouseHold;
 }
 
 void Input::KeyStateUpdate()
@@ -23,6 +23,9 @@ void Input::KeyStateUpdate()
 	memcpy_s(keyBuffOld, sizeof(char) * KEY_MAX, keyBuff, sizeof(char) * KEY_MAX); // 配列のコピー
 
 	GetHitKeyStateAll(keyBuff);//全てのキーの状態を取得 
+
+	mousePrev = mouseCurr;
+	mouseCurr = GetMouseInput();
 
 	for (int i = 0; i < KEY_MAX; i++)
 	{
@@ -40,8 +43,6 @@ void Input::KeyStateUpdate()
 		key_up[i] = key_xor & keyBuffOld[i];	//離された瞬間 = (前フレームとkey_xorのAND) 
 	}
 
-	moucePrev = mouceCurr;
-	mouceCurr = GetMouseInput();
 }
 
 bool Input::IsKeyUP(int keyCode)
@@ -60,19 +61,23 @@ bool Input::IsKeyHold(int keyCode)
 }
 
 // マウス系関数
-bool Input::IsMouseDown(int _mouceKeyCode)
+bool Input::IsMouseDown(int _mouseKeyCode)
 {
-	return mouceDown = ((mouceCurr and _mouceKeyCode) xor (moucePrev and _mouceKeyCode) and (mouceCurr and _mouceKeyCode));
+	mouseDown = mouseCurr ^ mousePrev;
+	return mouseDown &= (mouseCurr & _mouseKeyCode);
 }
 
-bool Input::IsMouseUp(int _mouceKeyCode)
+bool Input::IsMouseUp(int _mouseKeyCode)
 {
-	return mouceUp = (mouceCurr xor moucePrev) and moucePrev;
+	mouseUp = mouseCurr ^ mousePrev; // 1100 xor 1011 = 0111
+	return mouseUp &= (mousePrev & _mouseKeyCode);     // 0111 and (1011 and 0001) = 0111 and 0001 = 0001
 }
 
-bool Input::IsMouseHold(int _mouceKeyCode)
+bool Input::IsMouseHold(int _mouseKeyCode)
 {
-	return mouceHold;
+	mouseHold = mouseCurr & mousePrev; // 1011 and 1001 = 1001
+	mouseHold &= _mouseKeyCode;        // 1001 and 0001 = 0001
+	return mouseHold;                  // trueが返るはず
 }
 
 // 改良できそうなところ…

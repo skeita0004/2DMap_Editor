@@ -23,7 +23,6 @@ void Stage::Draw()
 {
 	printfDx("マウス：%d\n", Input::IsMouseDown(MOUSE_INPUT_LEFT));
 }
-
 //-----------//
 //   E O F   //
 //-----------//
