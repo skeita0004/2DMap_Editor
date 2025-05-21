@@ -155,12 +155,14 @@
     <ClInclude Include="Source\BootScene.h" />
     <ClInclude Include="Source\Input.h" />
     <ClInclude Include="Source\MapEdit.hpp" />
+    <ClInclude Include="Source\MousePointer.hpp" />
     <ClInclude Include="Source\Screen.h" />
     <ClInclude Include="Source\PlayScene.h" />
     <ClInclude Include="Source\SceneFactory.h" />
     <ClInclude Include="Source\MapChip.hpp" />
     <ClInclude Include="Source\TitleScene.h" />
     <ClInclude Include="Source\Stage.h" />
+    <ClInclude Include="Source\Vector2.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImGui\imgui.cpp" />
@@ -181,10 +183,12 @@
     <ClCompile Include="Source\Input.cpp" />
     <ClCompile Include="Source\MapEdit.cpp" />
     <ClCompile Include="Source\MapChip.cpp" />
+    <ClCompile Include="Source\MousePointer.cpp" />
     <ClCompile Include="Source\PlayScene.cpp" />
     <ClCompile Include="Source\SceneFactory.cpp" />
     <ClCompile Include="Source\TitleScene.cpp" />
     <ClCompile Include="Source\Stage.cpp" />
+    <ClCompile Include="Source\Vector2Int.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\img\bg.png" />

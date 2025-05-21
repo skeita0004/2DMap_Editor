@@ -7,6 +7,7 @@ PlayScene::PlayScene()
 {
 	//Stage* stage;
 	new Stage();
+	SetMouseDispFlag(FALSE); // カーソル非表示
 }
 
 PlayScene::~PlayScene()

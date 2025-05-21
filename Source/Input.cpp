@@ -1,6 +1,7 @@
 #include "Input.h"
 #include "DxLib.h"
 
+
 namespace
 {
 	//キーボード取得関連
@@ -13,9 +14,9 @@ namespace
 
 	int mousePrev = 0;
 	int mouseCurr = 0;
-	bool mouseDown;
-	bool mouseUp;
-	bool mouseHold;
+	int mouseDown;
+	int mouseUp;
+	int mouseHold;
 }
 
 void Input::KeyStateUpdate()
@@ -64,19 +65,19 @@ bool Input::IsKeyHold(int keyCode)
 bool Input::IsMouseDown(int _mouseKeyCode)
 {
 	mouseDown = mouseCurr ^ mousePrev;
-	return mouseDown &= (mouseCurr & _mouseKeyCode);
+	return mouseDown = mouseDown & (mouseCurr & _mouseKeyCode);
 }
 
 bool Input::IsMouseUp(int _mouseKeyCode)
 {
 	mouseUp = mouseCurr ^ mousePrev; // 1100 xor 1011 = 0111
-	return mouseUp &= (mousePrev & _mouseKeyCode);     // 0111 and (1011 and 0001) = 0111 and 0001 = 0001
+	return mouseUp = mouseUp & (mousePrev & _mouseKeyCode);     // 0111 and (1011 and 0001) = 0111 and 0001 = 0001
 }
 
 bool Input::IsMouseHold(int _mouseKeyCode)
 {
 	mouseHold = mouseCurr & mousePrev; // 1011 and 1001 = 1001
-	mouseHold &= _mouseKeyCode;        // 1001 and 0001 = 0001
+	mouseHold = mouseHold & _mouseKeyCode; // 1001 and 0001 = 0001
 	return mouseHold;                  // trueが返るはず
 }
 

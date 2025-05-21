@@ -3,6 +3,7 @@
 #include <vector>
 #include "MapChip.hpp"
 #include "MapEdit.hpp"
+#include "MousePointer.hpp"
 
 class Stage : public GameObject
 {
@@ -16,5 +17,6 @@ public:
 private:
 	MapChip* mapChip_;
 	MapEdit* mapEdit_;
+	MousePointer* mousePointer_;
 };
 
