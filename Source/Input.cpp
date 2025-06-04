@@ -1,7 +1,6 @@
 #include "Input.h"
 #include "DxLib.h"
 
-
 namespace
 {
 	//キーボード取得関連

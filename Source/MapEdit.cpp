@@ -1,6 +1,17 @@
 #include "MapEdit.hpp"
 #include <cassert>
 
+namespace
+{
+	constexpr int MAP_CHIP_NUM_WIDTH{ 20 };  // マップエディタ横方向の最大チップ数
+	constexpr int MAP_CHIP_NUM_HEIGHT{ 20 }; // マップエディタ縦方向の最大チップ数
+	constexpr int MAP_CHIP_IMAGE_SIZE{ 32 }; // チップの画素数（正方形前提）
+	constexpr int MAP_EDITOR_WIDTH{ MAP_CHIP_NUM_WIDTH * MAP_CHIP_IMAGE_SIZE };
+	constexpr int MAP_EDITOR_HEIGHT{ MAP_CHIP_NUM_HEIGHT * MAP_CHIP_IMAGE_SIZE };
+	constexpr int MAP_EDITOR_TOP_MARGIN{ (Screen::HEIGHT - MAP_CHIP_NUM_HEIGHT * MAP_CHIP_IMAGE_SIZE) / 2 };
+	constexpr int MAP_EDITOR_LEFT_MARGIN{ 240 };
+}
+
 MapEdit::MapEdit() :
 	GameObject(),
 	myMap_(MAP_CHIP_NUM_WIDTH * MAP_CHIP_NUM_HEIGHT, -1)

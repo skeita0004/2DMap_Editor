@@ -56,11 +56,11 @@ void Stage::Draw()
 	}
 	if (Input::IsMouseHold(MOUSE_INPUT_MIDDLE))
 	{
-		printfDx("holdMIDDLE(%d, %d)\n", mousePointer_->GetPosition().x, mousePointer_->GetPosition().y);
+		printfDx("holdMIDDLE:(%d, %d)\n", mousePointer_->GetPosition().x, mousePointer_->GetPosition().y);
 	}
 	if (Input::IsMouseHold(MOUSE_INPUT_LEFT))
 	{
-		printfDx("holdLEFT(%d, %d)\n", mousePointer_->GetPosition().x, mousePointer_->GetPosition().y);
+		printfDx("holdLEFT:(%d, %d)\n", mousePointer_->GetPosition().x, mousePointer_->GetPosition().y);
 	}
 }
 //-----------//

@@ -1,6 +1,5 @@
 #include "MapChip.hpp"
 #include "Screen.h"
-#include "MousePointer.hpp"
 #include "Input.h"
 
 namespace
@@ -23,7 +22,9 @@ namespace
 }
 
 MapChip::MapChip() :
-	GameObject()
+	GameObject(),
+	mousePosition_({0, 0}),
+	selected({0, 0})
 {
 	hImage_ = std::vector<int>(MAP_WIDTH * MAP_HEIGHT, -1);
 
@@ -48,36 +49,75 @@ MapChip::~MapChip()
 
 void MapChip::Update()
 {
-	int x = FindGameObject<MousePointer>()->GetPosition().x;
-	int y = FindGameObject<MousePointer>()->GetPosition().y;
+	GetMousePoint(&mousePosition_.x, &mousePosition_.y);
+
+	selected.x = (mousePosition_.x - (Screen::WIDTH - MAP_WINDOW_WIDTH)) / IMAGE_SIZE;
+	selected.y = mousePosition_.y / IMAGE_SIZE;
+
+#pragma region IsInMapChipArea_
+	int x = mousePosition_.x;
+	int y = mousePosition_.y;
 	if (x >= TOP_LEFT_X && y >= TOP_LEFT_Y && x <= RIGHT_BOTTOM_X && y <= RIGHT_BOTTOM_Y)
 	{
 		isAlpha = true;
+		if (Input::IsMouseDown(MOUSE_INPUT_LEFT))
+		{
+			isHold_ = true;
+			holdedIndex_ = selected.y * MAP_CHIP_NUM_WIDTH + selected.x;
+		}
 	}
 	else
 	{
 		isAlpha = false;
 	}
 
-	if (true)
-	{
-		// int n = 
-		if (Input::IsMouseDown(MOUSE_INPUT_LEFT))
-		{
-			// DrawGraph(x, y, hImage[n], TRUE);
-		}
-	}
+	//VECTOR2INT mousePosition;
+	//while (GetMousePoint(&mousePosition.x, &mousePosition.y) == -1)
+	//{
+	//}
+
+
+#pragma endregion
+	//
+	// 格子状の画像の中から、選ばれている画像に枠と塗りつぶしを行う
+	// row / wid, col % heiが使えそうだ
+	// マウス座標のｘを剰余演算し、yの商を求める
+	//
+
 }
 
 void MapChip::Draw()
 {
-	
+	// int select mousep.x - scrwid - mchipwidth / imagesize
+	// int select.y mousep.y / imagesize
+
+
 	for (int y = 0; y < MAP_CHIP_NUM_HEIGHT; y++)
 	{
 		for (int x = 0; x < MAP_CHIP_NUM_WIDTH; x++)
 		{
 			
-			if (isAlpha == false)
+			if (isAlpha)
+			{
+				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 500);
+				DrawBox(TOP_LEFT_X + selected.x * IMAGE_SIZE, selected.y * IMAGE_SIZE,
+					TOP_LEFT_X + selected.x * IMAGE_SIZE + IMAGE_SIZE, selected.y * IMAGE_SIZE + IMAGE_SIZE,
+					0xff00ff, false, 2);
+				DrawBox(TOP_LEFT_X + selected.x * IMAGE_SIZE, selected.y * IMAGE_SIZE,
+					TOP_LEFT_X + selected.x * IMAGE_SIZE + IMAGE_SIZE, selected.y * IMAGE_SIZE + IMAGE_SIZE,
+					0xff00ff, true);
+				DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE + 1, TOP_LEFT_Y + y * IMAGE_SIZE + 1,
+					hImage_[x + y * MAP_CHIP_NUM_WIDTH], TRUE);
+				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+				DrawLine(TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y,
+					TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y + MAP_WINDOW_HEIGHT,
+					0xffffff);
+				DrawLine(TOP_LEFT_X, TOP_LEFT_Y + IMAGE_SIZE * y,
+					TOP_LEFT_X + MAP_WINDOW_WIDTH, TOP_LEFT_Y + IMAGE_SIZE * y,
+					0xffffff);
+
+			}
+			else
 			{
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 150);
 				DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE + 1, TOP_LEFT_Y + y * IMAGE_SIZE + 1,
@@ -90,18 +130,14 @@ void MapChip::Draw()
 					0xffffff);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 			}
-			else
-			{
-				DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE + 1, TOP_LEFT_Y + y * IMAGE_SIZE + 1,
-					hImage_[x + y * MAP_CHIP_NUM_WIDTH], TRUE);
-				DrawLine(TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y,
-					TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y + MAP_WINDOW_HEIGHT,
-					0xffffff);
-				DrawLine(TOP_LEFT_X, TOP_LEFT_Y + IMAGE_SIZE * y,
-					TOP_LEFT_X + MAP_WINDOW_WIDTH, TOP_LEFT_Y + IMAGE_SIZE * y,
-					0xffffff);
-			}
 		}
 	}
 	DrawBox(TOP_LEFT_X, TOP_LEFT_Y, RIGHT_BOTTOM_X, RIGHT_BOTTOM_Y, FLAME_COLOR, FALSE, 3);
+
+	if (isHold_)
+	{
+		DrawExtendGraph(mousePosition_.x, mousePosition_.y,
+			mousePosition_.x + IMAGE_SIZE, mousePosition_.y + IMAGE_SIZE,
+			hImage_[holdedIndex_], true);
+	}
 }
