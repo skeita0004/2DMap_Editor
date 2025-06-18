@@ -20,5 +20,6 @@ public:
 
 	void Update();
 	void Draw();
-	int  GetImageHandle();
+	bool GetIsHold() { return isHold_; }
+	int GetHoldImage();
 };

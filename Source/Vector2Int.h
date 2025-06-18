@@ -40,7 +40,7 @@ inline VECTOR2INT operator *(VECTOR2INT a, int f)
 	return c;
 }
 
-inline float VSize(VECTOR2INT v)
+inline int VSize(VECTOR2INT v)
 {
 	return sqrtf(v.x * v.x + v.y * v.y);
 }

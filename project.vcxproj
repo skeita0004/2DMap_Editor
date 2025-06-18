@@ -156,6 +156,7 @@
     <ClInclude Include="Source\Input.h" />
     <ClInclude Include="Source\MapEdit.hpp" />
     <ClInclude Include="Source\MousePointer.hpp" />
+    <ClInclude Include="Source\Rect.hpp" />
     <ClInclude Include="Source\Screen.h" />
     <ClInclude Include="Source\PlayScene.h" />
     <ClInclude Include="Source\SceneFactory.h" />

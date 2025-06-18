@@ -135,6 +135,7 @@
     <ClInclude Include="Source\Vector2.h">
       <Filter>Library</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Rect.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Library">

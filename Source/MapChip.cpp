@@ -71,6 +71,14 @@ void MapChip::Update()
 		isAlpha = false;
 	}
 
+	if (isAlpha)
+	{
+		if (Input::IsMouseDown(MOUSE_INPUT_RIGHT))
+		{
+			
+		}
+	}
+
 	//VECTOR2INT mousePosition;
 	//while (GetMousePoint(&mousePosition.x, &mousePosition.y) == -1)
 	//{
@@ -78,12 +86,6 @@ void MapChip::Update()
 
 
 #pragma endregion
-	//
-	// 格子状の画像の中から、選ばれている画像に枠と塗りつぶしを行う
-	// row / wid, col % heiが使えそうだ
-	// マウス座標のｘを剰余演算し、yの商を求める
-	//
-
 }
 
 void MapChip::Draw()
@@ -100,6 +102,7 @@ void MapChip::Draw()
 			if (isAlpha)
 			{
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 500);
+
 				DrawBox(TOP_LEFT_X + selected.x * IMAGE_SIZE, selected.y * IMAGE_SIZE,
 					TOP_LEFT_X + selected.x * IMAGE_SIZE + IMAGE_SIZE, selected.y * IMAGE_SIZE + IMAGE_SIZE,
 					0xff00ff, false, 2);
@@ -108,7 +111,10 @@ void MapChip::Draw()
 					0xff00ff, true);
 				DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE + 1, TOP_LEFT_Y + y * IMAGE_SIZE + 1,
 					hImage_[x + y * MAP_CHIP_NUM_WIDTH], TRUE);
+
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+				
+
 				DrawLine(TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y,
 					TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y + MAP_WINDOW_HEIGHT,
 					0xffffff);
@@ -120,6 +126,7 @@ void MapChip::Draw()
 			else
 			{
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 150);
+
 				DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE + 1, TOP_LEFT_Y + y * IMAGE_SIZE + 1,
 							hImage_[x + y * MAP_CHIP_NUM_WIDTH], TRUE);
 				DrawLine(TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y,
@@ -128,6 +135,7 @@ void MapChip::Draw()
 				DrawLine(TOP_LEFT_X, TOP_LEFT_Y + IMAGE_SIZE * y,
 					TOP_LEFT_X + MAP_WINDOW_WIDTH, TOP_LEFT_Y + IMAGE_SIZE * y,
 					0xffffff);
+
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 			}
 		}
@@ -140,4 +148,9 @@ void MapChip::Draw()
 			mousePosition_.x + IMAGE_SIZE, mousePosition_.y + IMAGE_SIZE,
 			hImage_[holdedIndex_], true);
 	}
+}
+
+int MapChip::GetHoldImage()
+{
+	return hImage_[holdedIndex_];
 }
