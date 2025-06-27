@@ -1,6 +1,7 @@
 #include "MapChip.hpp"
 #include "Screen.h"
 #include "Input.h"
+#include <map>
 
 namespace
 {
@@ -24,7 +25,10 @@ namespace
 MapChip::MapChip() :
 	GameObject(),
 	mousePosition_({0, 0}),
-	selected({0, 0})
+	selected_({0, 0}),
+	holdedIndex_(-1),
+	isHold_(false),
+	hImage_(std::vector<int>(0, -1))
 {
 	hImage_ = std::vector<int>(MAP_WIDTH * MAP_HEIGHT, -1);
 
@@ -33,6 +37,9 @@ MapChip::MapChip() :
 				  MAP_WIDTH, MAP_HEIGHT,
 				  IMAGE_SIZE, IMAGE_SIZE,
 				  hImage_.data());
+
+	std::map<int, int> handleDatabase();
+
 }
 
 MapChip::~MapChip()
@@ -51,8 +58,8 @@ void MapChip::Update()
 {
 	GetMousePoint(&mousePosition_.x, &mousePosition_.y);
 
-	selected.x = (mousePosition_.x - (Screen::WIDTH - MAP_WINDOW_WIDTH)) / IMAGE_SIZE;
-	selected.y = mousePosition_.y / IMAGE_SIZE;
+	selected_.x = (mousePosition_.x - (Screen::WIDTH - MAP_WINDOW_WIDTH)) / IMAGE_SIZE;
+	selected_.y = mousePosition_.y / IMAGE_SIZE;
 
 #pragma region IsInMapChipArea_
 	int x = mousePosition_.x;
@@ -63,7 +70,7 @@ void MapChip::Update()
 		if (Input::IsMouseDown(MOUSE_INPUT_LEFT))
 		{
 			isHold_ = true;
-			holdedIndex_ = selected.y * MAP_CHIP_NUM_WIDTH + selected.x;
+			holdedIndex_ = selected_.y * MAP_CHIP_NUM_WIDTH + selected_.x;
 		}
 	}
 	else
@@ -103,11 +110,11 @@ void MapChip::Draw()
 			{
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 500);
 
-				DrawBox(TOP_LEFT_X + selected.x * IMAGE_SIZE, selected.y * IMAGE_SIZE,
-					TOP_LEFT_X + selected.x * IMAGE_SIZE + IMAGE_SIZE, selected.y * IMAGE_SIZE + IMAGE_SIZE,
+				DrawBox(TOP_LEFT_X + selected_.x * IMAGE_SIZE, selected_.y * IMAGE_SIZE,
+					TOP_LEFT_X + selected_.x * IMAGE_SIZE + IMAGE_SIZE, selected_.y * IMAGE_SIZE + IMAGE_SIZE,
 					0xff00ff, false, 2);
-				DrawBox(TOP_LEFT_X + selected.x * IMAGE_SIZE, selected.y * IMAGE_SIZE,
-					TOP_LEFT_X + selected.x * IMAGE_SIZE + IMAGE_SIZE, selected.y * IMAGE_SIZE + IMAGE_SIZE,
+				DrawBox(TOP_LEFT_X + selected_.x * IMAGE_SIZE, selected_.y * IMAGE_SIZE,
+					TOP_LEFT_X + selected_.x * IMAGE_SIZE + IMAGE_SIZE, selected_.y * IMAGE_SIZE + IMAGE_SIZE,
 					0xff00ff, true);
 				DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE + 1, TOP_LEFT_Y + y * IMAGE_SIZE + 1,
 					hImage_[x + y * MAP_CHIP_NUM_WIDTH], TRUE);

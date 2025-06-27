@@ -2,6 +2,8 @@
 #include <cassert>
 #include "Input.h"
 #include "MapChip.hpp"
+#include <string>
+#include <fstream>
 
 namespace
 {
@@ -20,6 +22,7 @@ MapEdit::MapEdit() :
 	mapEditRect_({ MAP_EDITOR_LEFT_MARGIN, MAP_EDITOR_TOP_MARGIN }, { MAP_EDITOR_WIDTH, MAP_EDITOR_HEIGHT }),
 	isOnMapEdit_(false)
 {
+	//mapChip_ = FindGameObject<MapChip>();
 }
 
 MapEdit::~MapEdit()
@@ -57,23 +60,35 @@ void MapEdit::Update()
 		int sizeX = mapEditRect_.imageSize.x;
 		int sizeY = mapEditRect_.imageSize.y;
 
-		if (x >= posX && y >= posY && x <= posX + sizeX && y <= posY + sizeY)
+		if (x > posX && y > posY && x < posX + sizeX && y < posY + sizeY)
 		{
+			MapChip* mapChip_ = FindGameObject<MapChip>();
 			isOnMapEdit_ = true;
-			if (Input::IsMouseDown(MOUSE_INPUT_LEFT))
+			if (Input::IsMouseHold(MOUSE_INPUT_LEFT))
 			{
-				MapChip* mapChip = FindGameObject<MapChip>();
-				if (mapChip && mapChip->GetIsHold())
+				if (Input::IsKeyHold(KEY_INPUT_F))
 				{
-					SetMap({ static_cast<int>(selected.x), static_cast<int>(selected.y) }, mapChip->GetHoldImage());
+					FillTile( mapChip_->GetHoldImage()));
 				}
+				if (mapChip_ && mapChip_->GetIsHold())
+				{
+					SetMap({ static_cast<int>(selected.x), static_cast<int>(selected.y) }, mapChip_->GetHoldImage());
+				}
+			}
+			if (Input::IsMouseHold(MOUSE_INPUT_MIDDLE))
+			{
+				SetMap({ static_cast<int>(selected.x), static_cast<int>(selected.y) }, -1);
 			}
 		}
 		else
 		{
 			isOnMapEdit_ = false;
 		}
+	}
 
+	if (/*Input::IsKeyDown(KEY_INPUT_LCONTROL) && */Input::IsKeyDown(KEY_INPUT_S))
+	{
+		SaveMapData();
 	}
 }
 
@@ -87,6 +102,19 @@ void MapEdit::Draw()
 		int sizeX = mapEditRect_.imageSize.x;
 		int sizeY = mapEditRect_.imageSize.y;
 
+		for (int y = 0; y < MAP_CHIP_NUM_HEIGHT; y++)
+		{
+			for (int x = 0; x < MAP_CHIP_NUM_WIDTH; x++)
+			{
+				int hImage = GetMap({ x, y });
+				if (hImage > -1)
+				{
+					DrawGraph(MAP_EDITOR_LEFT_MARGIN + x * IMAGE_SIZE,
+						MAP_EDITOR_TOP_MARGIN + y * IMAGE_SIZE,
+						hImage, TRUE);
+				}
+			}
+		}
 
 		if (isOnMapEdit_)
 		{
@@ -121,16 +149,64 @@ void MapEdit::Draw()
 						0xffeedd, 1);
 		}
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	}
+}
 
+void MapEdit::SaveMapData()
+{
+	int colCount = 0;
+	printfDx("saved!");
+	std::ofstream file("save.csv");
+	
+
+	file << "#HEAD, " << "\n";
+	file << "WIDTH, " << MAP_CHIP_NUM_WIDTH << "," << "\n";
+	file << "HEIGHT," << MAP_CHIP_NUM_HEIGHT << "," << "\n";
+	file << ",\n";
+	file << "#DATA, " << "\n";
+	for (auto& mapData : myMap_)
+	{
+		colCount++;
+		file << mapData << "," << " ";
+		if (colCount == MAP_CHIP_NUM_WIDTH)
 		{
-			int x = MAP_EDITOR_LEFT_MARGIN + (selected.x * IMAGE_SIZE);
-			int y = MAP_EDITOR_TOP_MARGIN + (selected.y * IMAGE_SIZE);
-
-			for (auto& myMap : myMap_)
-			{
-				DrawGraph(x, y, myMap, true);
-			}
-
+			file << "\n";
+			colCount = 0;
 		}
 	}
+	file.close();
+}
+
+void MapEdit::FillTile(const int _hChoseImage, const int _hFillImage, const int _choseMapIndex)
+{
+
+	if (_choseMapIndex < 0 || myMap_.size() <= _choseMapIndex)
+	{
+		return;
+	}
+
+	if (myMap_[_choseMapIndex] != _hChoseImage
+		|| myMap_[_choseMapIndex] == _hChoseImage)
+	{
+		return;
+	}
+
+	int upIndex = _choseMapIndex - MAP_CHIP_NUM_WIDTH;
+	int downIndex = _choseMapIndex + MAP_CHIP_NUM_WIDTH;
+	int leftIndex = _choseMapIndex - 1;
+	int rightIndex = _choseMapIndex + 1;
+
+	
+	// for‚Å‚Å‚«‚»‚¤
+	// ã•ûŒü
+	FillTile(_hChoseImage, _hFillImage, upIndex);
+
+	// ‰º•ûŒü
+	FillTile(_hChoseImage, _hFillImage, downIndex);
+
+	// ¶•ûŒü
+	FillTile(_hChoseImage, _hFillImage, leftIndex);
+
+	// ‰E•ûŒü
+	FillTile(_hChoseImage, _hFillImage, rightIndex);
 }

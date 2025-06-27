@@ -6,8 +6,8 @@
 Stage::Stage() :
 	GameObject()
 {
-	mapChip_ = new MapChip();
 	mapEdit_ = new MapEdit();
+	mapChip_ = new MapChip();
 	mousePointer_ = new MousePointer();
 }
 

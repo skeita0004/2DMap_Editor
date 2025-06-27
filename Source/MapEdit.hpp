@@ -7,6 +7,8 @@
 #include "Vector2.h"
 #include "Rect.hpp"
 
+class MapChip;
+
 class MapEdit : public GameObject
 {
 public:
@@ -17,7 +19,10 @@ public:
 	int GetMap(VECTOR2INT _pos) const;
 	void Update();
 	void Draw();
+	bool IsOnMapEdit() { return isOnMapEdit_; }
+	void SaveMapData();
 
+	void FillTile(const int _hChoseImage, const int _hFillImage, const int _choseMapIndex);
 private:
 	//int *hImage_; //背景画像のハンドル配列へのポインタ
 
@@ -26,4 +31,6 @@ private:
 	bool isOnMapEdit_;
 	VECTOR2INT mousePosition_;
 	VECTOR2 selected;
+
+	//MapChip* mapChip_;
 };

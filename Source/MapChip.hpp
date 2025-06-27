@@ -12,7 +12,7 @@ private:
 	VECTOR2INT mousePosition_;
 	bool isHold_;
 	int holdedIndex_;
-	VECTOR2 selected;
+	VECTOR2 selected_;
 
 public:
 	MapChip();
@@ -22,4 +22,5 @@ public:
 	void Draw();
 	bool GetIsHold() { return isHold_; }
 	int GetHoldImage();
+	//int GetHandle(int _index) { return hImage_[_index]; }
 };

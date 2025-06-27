@@ -42,5 +42,5 @@ inline VECTOR2INT operator *(VECTOR2INT a, int f)
 
 inline int VSize(VECTOR2INT v)
 {
-	return sqrtf(v.x * v.x + v.y * v.y);
+	return static_cast<int>(sqrtf(v.x * v.x + v.y * v.y));
 }

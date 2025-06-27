@@ -61,6 +61,7 @@
       <Filter>Library</Filter>
     </ClCompile>
     <ClCompile Include="Source\Vector2Int.h" />
+    <ClCompile Include="CsvWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Screen.h" />
@@ -136,6 +137,9 @@
       <Filter>Library</Filter>
     </ClInclude>
     <ClInclude Include="Source\Rect.hpp" />
+    <ClInclude Include="CsvWriter.h">
+      <Filter>Library</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Library">
