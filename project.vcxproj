@@ -149,11 +149,13 @@
     <ClInclude Include="Library\App.h" />
     <ClInclude Include="Library\CsvReader.h" />
     <ClInclude Include="Library\GameObject.h" />
+    <ClInclude Include="Library\Global.h" />
     <ClInclude Include="Library\ObjectManager.h" />
     <ClInclude Include="Library\SceneBase.h" />
     <ClInclude Include="Library\SceneManager.h" />
     <ClInclude Include="Library\Time.h" />
     <ClInclude Include="Source\BootScene.h" />
+    <ClInclude Include="Source\CsvReader.h" />
     <ClInclude Include="Source\Input.h" />
     <ClInclude Include="Source\MapEdit.hpp" />
     <ClInclude Include="Source\MousePointer.hpp" />
@@ -183,6 +185,7 @@
     <ClCompile Include="Library\SceneManager.cpp" />
     <ClCompile Include="Library\Time.cpp" />
     <ClCompile Include="Source\BootScene.cpp" />
+    <ClCompile Include="Source\CsvReader.cpp" />
     <ClCompile Include="Source\Input.cpp" />
     <ClCompile Include="Source\MapEdit.cpp" />
     <ClCompile Include="Source\MapChip.cpp" />

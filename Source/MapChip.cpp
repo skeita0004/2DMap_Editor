@@ -26,17 +26,24 @@ MapChip::MapChip() :
 	GameObject(),
 	mousePosition_({0, 0}),
 	selected_({0, 0}),
-	holdedIndex_(-1),
+	heldIndex_(-1),
 	isHold_(false),
-	hImage_(std::vector<int>(0, -1))
+	hImage_(std::vector<int>(0, -1)),
+	handleToIndex_()
 {
 	hImage_ = std::vector<int>(MAP_WIDTH * MAP_HEIGHT, -1);
+	handleToIndex_.clear();
 
 	LoadDivGraph("Assets/img/bg.png",
 				  MAP_WIDTH * MAP_HEIGHT,
 				  MAP_WIDTH, MAP_HEIGHT,
 				  IMAGE_SIZE, IMAGE_SIZE,
 				  hImage_.data());
+
+	for (int i = 0; i < hImage_.size(); i++)
+	{
+		handleToIndex_.insert(std::make_pair(hImage_[i], i));
+	}
 
 	std::map<int, int> handleDatabase();
 
@@ -70,7 +77,7 @@ void MapChip::Update()
 		if (Input::IsMouseDown(MOUSE_INPUT_LEFT))
 		{
 			isHold_ = true;
-			holdedIndex_ = selected_.y * MAP_CHIP_NUM_WIDTH + selected_.x;
+			heldIndex_ = selected_.y * MAP_CHIP_NUM_WIDTH + selected_.x;
 		}
 	}
 	else
@@ -153,11 +160,33 @@ void MapChip::Draw()
 	{
 		DrawExtendGraph(mousePosition_.x, mousePosition_.y,
 			mousePosition_.x + IMAGE_SIZE, mousePosition_.y + IMAGE_SIZE,
-			hImage_[holdedIndex_], true);
+			hImage_[heldIndex_], true);
 	}
 }
 
 int MapChip::GetHoldImage()
 {
-	return hImage_[holdedIndex_];
+	return hImage_[heldIndex_];
 }
+
+int MapChip::GetChipIndex(int _handle)
+{
+	if (_handle != -1)
+	{
+		return handleToIndex_[_handle];
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+int MapChip::GetImageHandle(int _Index)
+{
+	if (_Index < 0)
+	{
+		return -1;
+	}
+	return hImage_[_Index];
+}
+

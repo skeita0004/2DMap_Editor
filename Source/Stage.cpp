@@ -8,14 +8,16 @@ Stage::Stage() :
 {
 	mapEdit_ = new MapEdit();
 	mapChip_ = new MapChip();
-	mousePointer_ = new MousePointer();
+	//mousePointer_ = new MousePointer();
 }
 
 Stage::~Stage()
 {
 	delete mapChip_;
+	mapChip_ = nullptr;
 	delete mapEdit_;
-	delete mousePointer_;
+	mapEdit_ = nullptr;
+	//delete mousePointer_;
 }
 
 void Stage::Update()

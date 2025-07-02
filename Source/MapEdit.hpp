@@ -6,6 +6,7 @@
 #include "Vector2Int.h"
 #include "Vector2.h"
 #include "Rect.hpp"
+#include <Windows.h>
 
 class MapChip;
 
@@ -21,6 +22,7 @@ public:
 	void Draw();
 	bool IsOnMapEdit() { return isOnMapEdit_; }
 	void SaveMapData();
+	void OpenMapData();
 
 	void FillTile(const int _hChoseImage, const int _hFillImage, const int _choseMapIndex);
 private:
@@ -31,6 +33,6 @@ private:
 	bool isOnMapEdit_;
 	VECTOR2INT mousePosition_;
 	VECTOR2 selected;
-
+	
 	//MapChip* mapChip_;
 };

@@ -1,9 +1,13 @@
+#include <Windows.h>
 #include "MapEdit.hpp"
 #include <cassert>
 #include "Input.h"
 #include "MapChip.hpp"
 #include <string>
 #include <fstream>
+#include <filesystem>
+#include <iostream>
+#include "CsvReader.h"
 
 namespace
 {
@@ -51,6 +55,7 @@ void MapEdit::Update()
 	selected.x = (mousePosition_.x - MAP_EDITOR_LEFT_MARGIN) / IMAGE_SIZE;
 	selected.y = (mousePosition_.y - MAP_EDITOR_TOP_MARGIN) / IMAGE_SIZE;
 
+#pragma region PutTile
 	{
 		int x = mousePosition_.x;
 		int y = mousePosition_.y;
@@ -68,7 +73,7 @@ void MapEdit::Update()
 			{
 				if (Input::IsKeyHold(KEY_INPUT_F))
 				{
-					FillTile( mapChip_->GetHoldImage()));
+					FillTile(GetMap({static_cast<int>(selected.x), static_cast<int>(selected.y)}), mapChip_->GetHoldImage(), selected.y * MAP_CHIP_NUM_WIDTH + selected.x);
 				}
 				if (mapChip_ && mapChip_->GetIsHold())
 				{
@@ -85,18 +90,22 @@ void MapEdit::Update()
 			isOnMapEdit_ = false;
 		}
 	}
+#pragma endregion
 
-	if (/*Input::IsKeyDown(KEY_INPUT_LCONTROL) && */Input::IsKeyDown(KEY_INPUT_S))
+	if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_S))
 	{
 		SaveMapData();
+	}
+
+	if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_O))
+	{
+		OpenMapData();
 	}
 }
 
 void MapEdit::Draw()
 {
-
 	{
-
 		int posX = mapEditRect_.position.x;
 		int posY = mapEditRect_.position.y;
 		int sizeX = mapEditRect_.imageSize.x;
@@ -154,20 +163,39 @@ void MapEdit::Draw()
 
 void MapEdit::SaveMapData()
 {
+	OPENFILENAME openFile{0};
+	TCHAR filePath[255] = "";
+
+	openFile.lStructSize = sizeof(openFile);
+	openFile.hwndOwner = GetMainWindowHandle();
+	openFile.lpstrFilter = "csvファイル (*.csv)\0*.csv\0";
+	openFile.lpstrFile = filePath;
+	openFile.nMaxFile = 255;
+	openFile.Flags = OFN_OVERWRITEPROMPT;
+
+	if(GetSaveFileName(&openFile))
+	{
+		MessageBox(NULL, filePath, "情報", MB_OK);
+	}
+	else
+	{
+		MessageBox(NULL, "キャンセルされました。", "情報", MB_OK);
+	}
+
 	int colCount = 0;
 	printfDx("saved!");
-	std::ofstream file("save.csv");
-	
+	std::ofstream file(filePath);
+	MapChip* mc = FindGameObject<MapChip>();
 
-	file << "#HEAD, " << "\n";
-	file << "WIDTH, " << MAP_CHIP_NUM_WIDTH << "," << "\n";
-	file << "HEIGHT," << MAP_CHIP_NUM_HEIGHT << "," << "\n";
+	file << "#HEAD,\t" << "\n";
+	file << "WIDTH,\t" << MAP_CHIP_NUM_WIDTH << "," << "\n";
+	file << "HEIGHT,\t" << MAP_CHIP_NUM_HEIGHT << "," << "\n";
 	file << ",\n";
 	file << "#DATA, " << "\n";
 	for (auto& mapData : myMap_)
 	{
 		colCount++;
-		file << mapData << "," << " ";
+		file << mc->GetChipIndex(mapData) << ",\t";
 		if (colCount == MAP_CHIP_NUM_WIDTH)
 		{
 			file << "\n";
@@ -175,6 +203,65 @@ void MapEdit::SaveMapData()
 		}
 	}
 	file.close();
+}
+
+void MapEdit::OpenMapData()
+{
+	OPENFILENAME openFile{ 0 };
+	TCHAR filePath[255] = "";
+
+	openFile.lStructSize = sizeof(openFile);
+	openFile.hwndOwner = GetMainWindowHandle();
+	openFile.lpstrFilter = "csvファイル (*.csv)\0*.csv\0";
+	openFile.lpstrFile = filePath;
+	openFile.nMaxFile = 255;
+	openFile.Flags = OFN_OVERWRITEPROMPT;
+
+	if (GetOpenFileName(&openFile))
+	{
+		MessageBox(NULL, filePath, "情報", MB_OK);
+	}
+	else
+	{
+		MessageBox(NULL, "キャンセルされました。", "情報", MB_OK);
+	}
+
+	int colCount = 0;
+	//printfDx("saved!");
+
+	// その場所が存在するかのチェックが必要
+	std::ifstream file(filePath);
+	MapChip* mc = FindGameObject<MapChip>();
+
+	CsvReader csv(filePath);
+	
+	{
+		int i{};
+		int dataStartLine{};
+		while (true)
+		{
+			if (csv.GetString(i, 0) == "#DATA")
+			{
+				dataStartLine = i + 1;
+				break;
+			}
+			i++;
+		}
+
+
+		// myMapに、CSVの中身を入れる
+		// GetInt(line, col)
+		// そのまま入れられるんだけど、インデックスをハンドルにする必要がある
+		// あと、ヘッダを読み飛ばすので、その分のオフセットは必要。
+		//
+		for (int y = 0; y < MAP_CHIP_NUM_HEIGHT; y++)
+		{
+			for (int x = 0; x < MAP_CHIP_NUM_WIDTH; x++)
+			{
+				myMap_[y * MAP_CHIP_NUM_WIDTH + x] = mc->GetImageHandle(csv.GetInt(y + dataStartLine, x));
+			}
+		}
+	}
 }
 
 void MapEdit::FillTile(const int _hChoseImage, const int _hFillImage, const int _choseMapIndex)
