@@ -24,9 +24,17 @@ MapEdit::MapEdit() :
 	GameObject(),
 	myMap_(MAP_CHIP_NUM_WIDTH* MAP_CHIP_NUM_HEIGHT, -1),
 	mapEditRect_({ MAP_EDITOR_LEFT_MARGIN, MAP_EDITOR_TOP_MARGIN }, { MAP_EDITOR_WIDTH, MAP_EDITOR_HEIGHT }),
-	isOnMapEdit_(false)
+	isOnMapEdit_(false),
+	myMapIsEmpty_(true),
+	canDelete_(false),
+	eraseIndex_(0),
+	deleteTimer_(0.f),
+	hAlert_(-1),
+	hDelMessage_(-1)
 {
-	//mapChip_ = FindGameObject<MapChip>();
+	eraseIndex_ = myMap_.size();
+	hAlert_ = LoadGraph("Assets/img/mapDelAlert.png");
+	hDelMessage_ = LoadGraph("Assets/img/mapDelMessage.png");
 }
 
 MapEdit::~MapEdit()
@@ -55,51 +63,72 @@ void MapEdit::Update()
 	selected.x = (mousePosition_.x - MAP_EDITOR_LEFT_MARGIN) / IMAGE_SIZE;
 	selected.y = (mousePosition_.y - MAP_EDITOR_TOP_MARGIN) / IMAGE_SIZE;
 
+	if (not(canDelete_))
+	{
 #pragma region PutTile
-	{
-		int x = mousePosition_.x;
-		int y = mousePosition_.y;
-
-		int posX = mapEditRect_.position.x;
-		int posY = mapEditRect_.position.y;
-		int sizeX = mapEditRect_.imageSize.x;
-		int sizeY = mapEditRect_.imageSize.y;
-
-		if (x > posX && y > posY && x < posX + sizeX && y < posY + sizeY)
 		{
-			MapChip* mapChip_ = FindGameObject<MapChip>();
-			isOnMapEdit_ = true;
-			if (Input::IsMouseHold(MOUSE_INPUT_LEFT))
+			int x = mousePosition_.x;
+			int y = mousePosition_.y;
+
+			int posX = mapEditRect_.position.x;
+			int posY = mapEditRect_.position.y;
+			int sizeX = mapEditRect_.imageSize.x;
+			int sizeY = mapEditRect_.imageSize.y;
+
+			if (x > posX && y > posY && x < posX + sizeX && y < posY + sizeY)
 			{
-				if (Input::IsKeyHold(KEY_INPUT_F))
+				MapChip* mapChip_ = FindGameObject<MapChip>();
+				isOnMapEdit_ = true;
+				if (Input::IsMouseHold(MOUSE_INPUT_LEFT))
 				{
-					FillTile(GetMap({static_cast<int>(selected.x), static_cast<int>(selected.y)}), mapChip_->GetHoldImage(), selected.y * MAP_CHIP_NUM_WIDTH + selected.x);
+					if (Input::IsKeyHold(KEY_INPUT_F))
+					{
+						FillTile(GetMap({static_cast<int>(selected.x), static_cast<int>(selected.y)}), mapChip_->GetHoldImage(), selected.y * MAP_CHIP_NUM_WIDTH + selected.x);
+					}
+					if (mapChip_ && mapChip_->GetIsHold())
+					{
+						SetMap({ static_cast<int>(selected.x), static_cast<int>(selected.y) }, mapChip_->GetHoldImage());
+					}
 				}
-				if (mapChip_ && mapChip_->GetIsHold())
+				if (Input::IsMouseHold(MOUSE_INPUT_MIDDLE))
 				{
-					SetMap({ static_cast<int>(selected.x), static_cast<int>(selected.y) }, mapChip_->GetHoldImage());
+					SetMap({ static_cast<int>(selected.x), static_cast<int>(selected.y) }, -1);
 				}
 			}
-			if (Input::IsMouseHold(MOUSE_INPUT_MIDDLE))
+			else
 			{
-				SetMap({ static_cast<int>(selected.x), static_cast<int>(selected.y) }, -1);
+				isOnMapEdit_ = false;
 			}
 		}
-		else
+	#pragma endregion
+
+		if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_S))
 		{
-			isOnMapEdit_ = false;
+			SaveMapData();
 		}
-	}
-#pragma endregion
 
-	if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_S))
-	{
-		SaveMapData();
+		if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_O))
+		{
+			OpenMapData();
+		}
+
+		if (Input::IsKeyDown(KEY_INPUT_DELETE))
+		{
+			if (IDOK == MessageBox(nullptr, "マップデータの解散を行いますか？", "マップデータの全削除", MB_OK | MB_OKCANCEL | MB_ICONWARNING));
+			{
+				deleteTimer_ = 0.f;
+				canDelete_ = true;
+				myMapIsEmpty_ = false;
+				eraseIndex_ = myMap_.size();
+			}
+		}
+
 	}
 
-	if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_O))
+	if (canDelete_)
 	{
-		OpenMapData();
+		deleteTimer_ += Time::DeltaTime();
+		DeleteMapData();
 	}
 }
 
@@ -159,6 +188,14 @@ void MapEdit::Draw()
 		}
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
+
+	if (canDelete_)
+	{
+		DrawExtendGraph(0, 200, Screen::WIDTH, 600, hDelMessage_, TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * fabs(sinf(deleteTimer_))));
+		DrawExtendGraph(0, 0, 300, 50, hAlert_, TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	}
 }
 
 void MapEdit::SaveMapData()
@@ -173,11 +210,7 @@ void MapEdit::SaveMapData()
 	openFile.nMaxFile = 255;
 	openFile.Flags = OFN_OVERWRITEPROMPT;
 
-	if(GetSaveFileName(&openFile))
-	{
-		MessageBox(NULL, filePath, "情報", MB_OK);
-	}
-	else
+	if(not(GetSaveFileName(&openFile)))
 	{
 		MessageBox(NULL, "キャンセルされました。", "情報", MB_OK);
 	}
@@ -227,9 +260,12 @@ void MapEdit::OpenMapData()
 	}
 
 	int colCount = 0;
-	//printfDx("saved!");
 
-	// その場所が存在するかのチェックが必要
+	if (not(std::filesystem::exists(filePath)))
+	{
+		printfDx("ファイルが存在していない！");
+		return;
+	}
 	std::ifstream file(filePath);
 	MapChip* mc = FindGameObject<MapChip>();
 
@@ -261,6 +297,41 @@ void MapEdit::OpenMapData()
 				myMap_[y * MAP_CHIP_NUM_WIDTH + x] = mc->GetImageHandle(csv.GetInt(y + dataStartLine, x));
 			}
 		}
+	}
+}
+
+void MapEdit::DeleteMapData()
+{
+	for (int i = myMap_.size() - eraseIndex_; i < myMap_.size(); i++)
+	{
+		if (myMap_[i] == -1) // 空じゃなくなるまで飛ばす
+		{
+			eraseIndex_ -= 1;
+			continue;
+		}
+
+		myMap_[i] = -1;
+		eraseIndex_ -= 1;
+		break;
+	}
+
+	int emptyCount = 0;
+	for (auto& map : myMap_)
+	{
+		if (map == -1)
+		{
+			emptyCount++;
+		}
+	}
+
+	if (emptyCount >= myMap_.size())
+	{
+		myMapIsEmpty_ = true;
+	}
+
+	if (myMapIsEmpty_)
+	{
+		canDelete_ = false;
 	}
 }
 

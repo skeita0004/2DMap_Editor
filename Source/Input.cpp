@@ -79,7 +79,3 @@ bool Input::IsMouseHold(int _mouseKeyCode)
 	mouseHold = mouseHold & _mouseKeyCode; // 1001 and 0001 = 0001
 	return mouseHold;                  // true‚ª•Ô‚é‚Í‚¸
 }
-
-// ‰ü—Ç‚Å‚«‚»‚¤‚È‚Æ‚±‚ëc
-//		”z—ñ‚ğvector‚É
-//			memcopy‚Í‚à‚¤ŒÃ‚¢

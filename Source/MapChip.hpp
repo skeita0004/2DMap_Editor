@@ -29,5 +29,4 @@ private:
 	bool isHold_;
 	int heldIndex_;
 	VECTOR2 selected_;
-
 };

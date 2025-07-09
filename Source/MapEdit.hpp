@@ -23,6 +23,7 @@ public:
 	bool IsOnMapEdit() { return isOnMapEdit_; }
 	void SaveMapData();
 	void OpenMapData();
+	void DeleteMapData();
 
 	void FillTile(const int _hChoseImage, const int _hFillImage, const int _choseMapIndex);
 private:
@@ -33,6 +34,10 @@ private:
 	bool isOnMapEdit_;
 	VECTOR2INT mousePosition_;
 	VECTOR2 selected;
-	
-	//MapChip* mapChip_;
+	bool myMapIsEmpty_;
+	bool canDelete_;
+	int eraseIndex_;
+	float deleteTimer_; // cu
+	int hAlert_;
+	int hDelMessage_;
 };

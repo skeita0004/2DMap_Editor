@@ -23,6 +23,7 @@
     <ProjectGuid>{EFAFCEE4-F6EA-4651-BA3F-DC3176CDD3A8}</ProjectGuid>
     <RootNamespace>project</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>ToolMake</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -199,7 +200,9 @@
   <ItemGroup>
     <Image Include="Assets\img\bg.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="profile.ini" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

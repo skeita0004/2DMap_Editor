@@ -164,4 +164,7 @@
   <ItemGroup>
     <Image Include="Assets\img\bg.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="profile.ini" />
+  </ItemGroup>
 </Project>

@@ -45,13 +45,18 @@ CsvReader::CsvReader(std::string filename)
 		LINEREC lineRecord;
 		int top = 0;
 		bool indq = false;
-		for (int n = 0; n < lineStr.size(); n++) {
-			if (lineStr[n]==',') {
-				if (!indq) {
+		for (int n = 0; n < lineStr.size(); n++)
+		{
+			if (lineStr[n]==',')
+			{
+				if (!indq)
+				{
 					lineRecord.record.emplace_back(lineStr.substr(top, (size_t)(n - top)));
 					top = n + 1;
 				}
-			} else if (lineStr[n] == '"')
+
+			} 
+			else if (lineStr[n] == '"')
 				indq = !indq;
 		}
 		lineRecord.record.emplace_back(lineStr.substr(top, lineStr.size() - top));
