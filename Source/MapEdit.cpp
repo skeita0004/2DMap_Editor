@@ -1,4 +1,4 @@
-#include <Windows.h>
+ï»¿#include <Windows.h>
 #include "MapEdit.hpp"
 #include <cassert>
 #include "Input.h"
@@ -11,9 +11,9 @@
 
 namespace
 {
-	constexpr int MAP_CHIP_NUM_WIDTH{ 20 };  // ƒ}ƒbƒvƒGƒfƒBƒ^‰¡•ûŒü‚ÌÅ‘åƒ`ƒbƒv”
-	constexpr int MAP_CHIP_NUM_HEIGHT{ 20 }; // ƒ}ƒbƒvƒGƒfƒBƒ^c•ûŒü‚ÌÅ‘åƒ`ƒbƒv”
-	constexpr int IMAGE_SIZE{ 32 }; // ƒ`ƒbƒv‚Ì‰æ‘f”i³•ûŒ`‘O’ñj
+	constexpr int MAP_CHIP_NUM_WIDTH{ 20 };  // ãƒãƒƒãƒ—ã‚¨ãƒ‡ã‚£ã‚¿æ¨ªæ–¹å‘ã®æœ€å¤§ãƒãƒƒãƒ—æ•°
+	constexpr int MAP_CHIP_NUM_HEIGHT{ 20 }; // ãƒãƒƒãƒ—ã‚¨ãƒ‡ã‚£ã‚¿ç¸¦æ–¹å‘ã®æœ€å¤§ãƒãƒƒãƒ—æ•°
+	constexpr int IMAGE_SIZE{ 32 }; // ãƒãƒƒãƒ—ã®ç”»ç´ æ•°ï¼ˆæ­£æ–¹å½¢å‰æï¼‰
 	constexpr int MAP_EDITOR_WIDTH{ MAP_CHIP_NUM_WIDTH * IMAGE_SIZE };
 	constexpr int MAP_EDITOR_HEIGHT{ MAP_CHIP_NUM_HEIGHT * IMAGE_SIZE };
 	constexpr int MAP_EDITOR_TOP_MARGIN{ (Screen::HEIGHT - MAP_CHIP_NUM_HEIGHT * IMAGE_SIZE) / 2 };
@@ -63,19 +63,20 @@ void MapEdit::Update()
 	selected.x = (mousePosition_.x - MAP_EDITOR_LEFT_MARGIN) / IMAGE_SIZE;
 	selected.y = (mousePosition_.y - MAP_EDITOR_TOP_MARGIN) / IMAGE_SIZE;
 
-	if (not(canDelete_))
-	{
+
 #pragma region PutTile
+	{
+		int x = mousePosition_.x;
+		int y = mousePosition_.y;
+
+		int posX = mapEditRect_.position.x;
+		int posY = mapEditRect_.position.y;
+		int sizeX = mapEditRect_.imageSize.x;
+		int sizeY = mapEditRect_.imageSize.y;
+
+		if (x > posX && y > posY && x < posX + sizeX && y < posY + sizeY)
 		{
-			int x = mousePosition_.x;
-			int y = mousePosition_.y;
-
-			int posX = mapEditRect_.position.x;
-			int posY = mapEditRect_.position.y;
-			int sizeX = mapEditRect_.imageSize.x;
-			int sizeY = mapEditRect_.imageSize.y;
-
-			if (x > posX && y > posY && x < posX + sizeX && y < posY + sizeY)
+			if (not(canDelete_))
 			{
 				MapChip* mapChip_ = FindGameObject<MapChip>();
 				isOnMapEdit_ = true;
@@ -95,34 +96,33 @@ void MapEdit::Update()
 					SetMap({ static_cast<int>(selected.x), static_cast<int>(selected.y) }, -1);
 				}
 			}
-			else
-			{
-				isOnMapEdit_ = false;
-			}
 		}
-	#pragma endregion
-
-		if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_S))
+		else
 		{
-			SaveMapData();
+			isOnMapEdit_ = false;
 		}
+	}
+#pragma endregion
 
-		if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_O))
+	if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_S))
+	{
+		SaveMapData();
+	}
+
+	if (Input::IsKeyHold(KEY_INPUT_LCONTROL) && Input::IsKeyDown(KEY_INPUT_O))
+	{
+		OpenMapData();
+	}
+
+	if (Input::IsKeyDown(KEY_INPUT_DELETE))
+	{
+		if (IDOK == MessageBox(nullptr, "ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ã®è§£æ•£ã‚’è¡Œã„ã¾ã™ã‹ï¼Ÿ", "ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ã®å…¨å‰Šé™¤", MB_OKCANCEL | MB_ICONWARNING))
 		{
-			OpenMapData();
+			deleteTimer_ = 0.f;
+			canDelete_ = true;
+			myMapIsEmpty_ = false;
+			eraseIndex_ = myMap_.size();
 		}
-
-		if (Input::IsKeyDown(KEY_INPUT_DELETE))
-		{
-			if (IDOK == MessageBox(nullptr, "ƒ}ƒbƒvƒf[ƒ^‚Ì‰ğU‚ğs‚¢‚Ü‚·‚©H", "ƒ}ƒbƒvƒf[ƒ^‚Ì‘Síœ", MB_OK | MB_OKCANCEL | MB_ICONWARNING));
-			{
-				deleteTimer_ = 0.f;
-				canDelete_ = true;
-				myMapIsEmpty_ = false;
-				eraseIndex_ = myMap_.size();
-			}
-		}
-
 	}
 
 	if (canDelete_)
@@ -205,14 +205,14 @@ void MapEdit::SaveMapData()
 
 	openFile.lStructSize = sizeof(openFile);
 	openFile.hwndOwner = GetMainWindowHandle();
-	openFile.lpstrFilter = "csvƒtƒ@ƒCƒ‹ (*.csv)\0*.csv\0";
+	openFile.lpstrFilter = "csvãƒ•ã‚¡ã‚¤ãƒ« (*.csv)\0*.csv\0";
 	openFile.lpstrFile = filePath;
 	openFile.nMaxFile = 255;
 	openFile.Flags = OFN_OVERWRITEPROMPT;
 
 	if(not(GetSaveFileName(&openFile)))
 	{
-		MessageBox(NULL, "ƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B", "î•ñ", MB_OK);
+		MessageBox(NULL, "ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚", "æƒ…å ±", MB_OK);
 	}
 
 	int colCount = 0;
@@ -245,25 +245,25 @@ void MapEdit::OpenMapData()
 
 	openFile.lStructSize = sizeof(openFile);
 	openFile.hwndOwner = GetMainWindowHandle();
-	openFile.lpstrFilter = "csvƒtƒ@ƒCƒ‹ (*.csv)\0*.csv\0";
+	openFile.lpstrFilter = "csvãƒ•ã‚¡ã‚¤ãƒ« (*.csv)\0*.csv\0";
 	openFile.lpstrFile = filePath;
 	openFile.nMaxFile = 255;
 	openFile.Flags = OFN_OVERWRITEPROMPT;
 
 	if (GetOpenFileName(&openFile))
 	{
-		MessageBox(NULL, filePath, "î•ñ", MB_OK);
+		MessageBox(NULL, filePath, "æƒ…å ±", MB_OK);
 	}
 	else
 	{
-		MessageBox(NULL, "ƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B", "î•ñ", MB_OK);
+		MessageBox(NULL, "ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚", "æƒ…å ±", MB_OK);
 	}
 
 	int colCount = 0;
 
 	if (not(std::filesystem::exists(filePath)))
 	{
-		printfDx("ƒtƒ@ƒCƒ‹‚ª‘¶İ‚µ‚Ä‚¢‚È‚¢I");
+		printfDx("ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã—ã¦ã„ãªã„ï¼");
 		return;
 	}
 	std::ifstream file(filePath);
@@ -285,10 +285,10 @@ void MapEdit::OpenMapData()
 		}
 
 
-		// myMap‚ÉACSV‚Ì’†g‚ğ“ü‚ê‚é
+		// myMapã«ã€CSVã®ä¸­èº«ã‚’å…¥ã‚Œã‚‹
 		// GetInt(line, col)
-		// ‚»‚Ì‚Ü‚Ü“ü‚ê‚ç‚ê‚é‚ñ‚¾‚¯‚ÇAƒCƒ“ƒfƒbƒNƒX‚ğƒnƒ“ƒhƒ‹‚É‚·‚é•K—v‚ª‚ ‚é
-		// ‚ ‚ÆAƒwƒbƒ_‚ğ“Ç‚İ”ò‚Î‚·‚Ì‚ÅA‚»‚Ì•ª‚ÌƒIƒtƒZƒbƒg‚Í•K—vB
+		// ãã®ã¾ã¾å…¥ã‚Œã‚‰ã‚Œã‚‹ã‚“ã ã‘ã©ã€ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’ãƒãƒ³ãƒ‰ãƒ«ã«ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
+		// ã‚ã¨ã€ãƒ˜ãƒƒãƒ€ã‚’èª­ã¿é£›ã°ã™ã®ã§ã€ãã®åˆ†ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã¯å¿…è¦ã€‚
 		//
 		for (int y = 0; y < MAP_CHIP_NUM_HEIGHT; y++)
 		{
@@ -304,7 +304,7 @@ void MapEdit::DeleteMapData()
 {
 	for (int i = myMap_.size() - eraseIndex_; i < myMap_.size(); i++)
 	{
-		if (myMap_[i] == -1) // ‹ó‚¶‚á‚È‚­‚È‚é‚Ü‚Å”ò‚Î‚·
+		if (myMap_[i] == -1) // ç©ºã˜ã‚ƒãªããªã‚‹ã¾ã§é£›ã°ã™
 		{
 			eraseIndex_ -= 1;
 			continue;
@@ -355,16 +355,16 @@ void MapEdit::FillTile(const int _hChoseImage, const int _hFillImage, const int 
 	int rightIndex = _choseMapIndex + 1;
 
 	
-	// for‚Å‚Å‚«‚»‚¤
-	// ã•ûŒü
+	// forã§ã§ããã†
+	// ä¸Šæ–¹å‘
 	FillTile(_hChoseImage, _hFillImage, upIndex);
 
-	// ‰º•ûŒü
+	// ä¸‹æ–¹å‘
 	FillTile(_hChoseImage, _hFillImage, downIndex);
 
-	// ¶•ûŒü
+	// å·¦æ–¹å‘
 	FillTile(_hChoseImage, _hFillImage, leftIndex);
 
-	// ‰E•ûŒü
+	// å³æ–¹å‘
 	FillTile(_hChoseImage, _hFillImage, rightIndex);
 }
