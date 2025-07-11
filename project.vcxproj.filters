@@ -50,9 +50,6 @@
     <ClCompile Include="Library\Time.cpp">
       <Filter>Library</Filter>
     </ClCompile>
-    <ClCompile Include="Library\CsvReader.cpp">
-      <Filter>Library</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Stage.cpp" />
     <ClCompile Include="Source\MapChip.cpp" />
     <ClCompile Include="Source\MapEdit.cpp" />
@@ -60,9 +57,11 @@
     <ClCompile Include="Source\Input.cpp">
       <Filter>Library</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Vector2Int.h" />
     <ClCompile Include="CsvWriter.cpp" />
     <ClCompile Include="Source\CsvReader.cpp" />
+    <ClCompile Include="Library\Command.cpp" />
+    <ClCompile Include="Library\MyDxLib.cpp" />
+    <ClCompile Include="Source\MapChipConfig.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Screen.h" />
@@ -124,9 +123,6 @@
     <ClInclude Include="Library\Time.h">
       <Filter>Library</Filter>
     </ClInclude>
-    <ClInclude Include="Library\CsvReader.h">
-      <Filter>Library</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Stage.h" />
     <ClInclude Include="Source\MapChip.hpp" />
     <ClInclude Include="Source\MapEdit.hpp" />
@@ -143,6 +139,12 @@
     </ClInclude>
     <ClInclude Include="Library\Global.h" />
     <ClInclude Include="Source\CsvReader.h" />
+    <ClInclude Include="Library\Command.h" />
+    <ClInclude Include="Library\json.hpp" />
+    <ClInclude Include="Library\MyDxLib.hpp" />
+    <ClInclude Include="Library\Vector2D.hpp" />
+    <ClInclude Include="Source\MapChipConfig.hpp" />
+    <ClInclude Include="Source\Vector2Int.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Library">

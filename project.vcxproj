@@ -148,16 +148,20 @@
     <ClInclude Include="ImGui\imstb_textedit.h" />
     <ClInclude Include="ImGui\imstb_truetype.h" />
     <ClInclude Include="Library\App.h" />
-    <ClInclude Include="Library\CsvReader.h" />
+    <ClInclude Include="Library\Command.h" />
     <ClInclude Include="Library\GameObject.h" />
     <ClInclude Include="Library\Global.h" />
+    <ClInclude Include="Library\json.hpp" />
+    <ClInclude Include="Library\MyDxLib.hpp" />
     <ClInclude Include="Library\ObjectManager.h" />
     <ClInclude Include="Library\SceneBase.h" />
     <ClInclude Include="Library\SceneManager.h" />
     <ClInclude Include="Library\Time.h" />
+    <ClInclude Include="Library\Vector2D.hpp" />
     <ClInclude Include="Source\BootScene.h" />
     <ClInclude Include="Source\CsvReader.h" />
     <ClInclude Include="Source\Input.h" />
+    <ClInclude Include="Source\MapChipConfig.hpp" />
     <ClInclude Include="Source\MapEdit.hpp" />
     <ClInclude Include="Source\MousePointer.hpp" />
     <ClInclude Include="Source\Rect.hpp" />
@@ -168,6 +172,7 @@
     <ClInclude Include="Source\TitleScene.h" />
     <ClInclude Include="Source\Stage.h" />
     <ClInclude Include="Source\Vector2.h" />
+    <ClInclude Include="Source\Vector2Int.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CsvWriter.cpp" />
@@ -180,14 +185,16 @@
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Library\App.cpp" />
-    <ClCompile Include="Library\CsvReader.cpp" />
+    <ClCompile Include="Library\Command.cpp" />
     <ClCompile Include="Library\main.cpp" />
+    <ClCompile Include="Library\MyDxLib.cpp" />
     <ClCompile Include="Library\ObjectManager.cpp" />
     <ClCompile Include="Library\SceneManager.cpp" />
     <ClCompile Include="Library\Time.cpp" />
     <ClCompile Include="Source\BootScene.cpp" />
     <ClCompile Include="Source\CsvReader.cpp" />
     <ClCompile Include="Source\Input.cpp" />
+    <ClCompile Include="Source\MapChipConfig.cpp" />
     <ClCompile Include="Source\MapEdit.cpp" />
     <ClCompile Include="Source\MapChip.cpp" />
     <ClCompile Include="Source\MousePointer.cpp" />
@@ -195,7 +202,6 @@
     <ClCompile Include="Source\SceneFactory.cpp" />
     <ClCompile Include="Source\TitleScene.cpp" />
     <ClCompile Include="Source\Stage.cpp" />
-    <ClCompile Include="Source\Vector2Int.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\img\bg.png" />

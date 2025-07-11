@@ -1,44 +1,53 @@
+#define NOMINMAX
+
 #include "MapChip.hpp"
 #include "Screen.h"
 #include "Input.h"
 #include <map>
+#include "../Library/MyDxLib.hpp"
+#include <algorithm>
 
 namespace
 {
-	// ƒJƒu‚Á‚Ä‚é‚©‚ç‚Ç‚¤‚É‚©‚µ‚ë
-	static const int IMAGE_SIZE = { 32 };
-	const int MAP_WIDTH = { 16 };
-	const int MAP_HEIGHT = { 12 };
-	const int MAP_CHIP_NUM_WIDTH = { 8 };
-	const int MAP_CHIP_NUM_HEIGHT = { 24 };
-	const int MAP_WINDOW_WIDTH = { IMAGE_SIZE * MAP_CHIP_NUM_WIDTH };
-	const int MAP_WINDOW_HEIGHT = { IMAGE_SIZE * MAP_CHIP_NUM_HEIGHT };
-	const int FLAME_COLOR = GetColor(255, 0, 0);
+	//const int IMAGE_SIZE = { 32 };
+	//const int MAP_WIDTH = { 16 };
+	//const int MAP_HEIGHT = { 12 };
+	//const int MAP_CHIP_NUM_WIDTH = { 8 };
+	//const int MAP_CHIP_NUM_HEIGHT = { 24 };
+	//const int MAP_WINDOW_WIDTH = { IMAGE_SIZE * MAP_CHIP_NUM_WIDTH };
+	//const int MAP_WINDOW_HEIGHT = { IMAGE_SIZE * MAP_CHIP_NUM_HEIGHT };
+	//const int FLAME_COLOR = GetColor(255, 0, 0);
 	bool      isAlpha = false;
 
-	const int TOP_LEFT_X = Screen::WIDTH - MAP_WINDOW_WIDTH;
-	const int TOP_LEFT_Y = 0;
-	const int RIGHT_BOTTOM_X = Screen::WIDTH;
-	const int RIGHT_BOTTOM_Y = MAP_WINDOW_HEIGHT;
+	//const int TOP_LEFT_X = Screen::WIDTH - MAP_WINDOW_WIDTH;
+	//const int TOP_LEFT_Y = 0;
+	//const int RIGHT_BOTTOM_X = Screen::WIDTH;
+	//const int RIGHT_BOTTOM_Y = MAP_WINDOW_HEIGHT;
 }
 
 MapChip::MapChip() :
 	GameObject(),
-	mousePosition_({0, 0}),
-	selected_({0, 0}),
-	heldIndex_(-1),
-	isHold_(false),
 	hImage_(std::vector<int>(0, -1)),
-	handleToIndex_()
+	handleToIndex_(),
+	mousePosition_({0, 0}),
+	isHold_(false),
+	heldIndex_(-1),
+	selected_({0, 0}),
+	mcg_(GetMapChipConfig()),
+	ScrollOffset_(0)
 {
-	hImage_ = std::vector<int>(MAP_WIDTH * MAP_HEIGHT, -1);
+	char buff[255];
+	GetPrivateProfileStringA("MapChip", "Title", "game", 
+							 buff, sizeof(buff), "./profile.ini");
+	int a = GetPrivateProfileIntA("MapChip", "ImageSize", 32, "./profile.ini");
+	hImage_ = std::vector<int>(mcg_.IMAGE_TILE_NUM.x * mcg_.IMAGE_TILE_NUM.y, -1);
 	handleToIndex_.clear();
 
 	LoadDivGraph("Assets/img/bg.png",
-				  MAP_WIDTH * MAP_HEIGHT,
-				  MAP_WIDTH, MAP_HEIGHT,
-				  IMAGE_SIZE, IMAGE_SIZE,
-				  hImage_.data());
+		mcg_.IMAGE_TILE_NUM.x * mcg_.IMAGE_TILE_NUM.y,
+		mcg_.IMAGE_TILE_NUM.x, mcg_.IMAGE_TILE_NUM.y,
+		mcg_.IMAGE_PX_SIZE, mcg_.IMAGE_PX_SIZE,
+		hImage_.data());
 
 	for (int i = 0; i < hImage_.size(); i++)
 	{
@@ -46,17 +55,16 @@ MapChip::MapChip() :
 	}
 
 	std::map<int, int> handleDatabase();
-
 }
 
 MapChip::~MapChip()
 {
-	for (int i = 0; i < MAP_WIDTH * MAP_HEIGHT; i++)
+	for (auto& image : hImage_)
 	{
-		if (hImage_[i] != -1)
+		if (image != -1)
 		{
-			DeleteGraph(hImage_[i]);
-			hImage_[i] = -1;
+			DeleteGraph(image);
+			image = -1;
 		}
 	}
 }
@@ -65,19 +73,17 @@ void MapChip::Update()
 {
 	GetMousePoint(&mousePosition_.x, &mousePosition_.y);
 
-	selected_.x = (mousePosition_.x - (Screen::WIDTH - MAP_WINDOW_WIDTH)) / IMAGE_SIZE;
-	selected_.y = mousePosition_.y / IMAGE_SIZE;
+	selected_ = ScreenToMapIndex(mousePosition_);
 
 #pragma region IsInMapChipArea_
-	int x = mousePosition_.x;
-	int y = mousePosition_.y;
-	if (x >= TOP_LEFT_X && y >= TOP_LEFT_Y && x <= RIGHT_BOTTOM_X && y <= RIGHT_BOTTOM_Y)
+
+	if (IsInChipArea(mousePosition_))
 	{
 		isAlpha = true;
 		if (Input::IsMouseDown(MOUSE_INPUT_LEFT))
 		{
 			isHold_ = true;
-			heldIndex_ = selected_.y * MAP_CHIP_NUM_WIDTH + selected_.x;
+			heldIndex_ = selected_.y * mcg_.MAP_CHIP_NUM.x + selected_.x;
 		}
 	}
 	else
@@ -93,73 +99,79 @@ void MapChip::Update()
 		}
 	}
 
-	//VECTOR2INT mousePosition;
-	//while (GetMousePoint(&mousePosition.x, &mousePosition.y) == -1)
-	//{
-	//}
-
+	if (Input::IsKeyDown(KEY_INPUT_LEFT))
+	{
+		ScrollOffset_ = std::min(mcg_.MAP_CHIP_NUM.x, ScrollOffset_ + 1);
+	}
+	if (Input::IsKeyDown(KEY_INPUT_RIGHT))
+	{
+		ScrollOffset_ = std::max(0, ScrollOffset_ - 1);
+	}
 
 #pragma endregion
 }
 
 void MapChip::Draw()
 {
-	// int select mousep.x - scrwid - mchipwidth / imagesize
-	// int select.y mousep.y / imagesize
-
-
-	for (int y = 0; y < MAP_CHIP_NUM_HEIGHT; y++)
+	printfDx("%d\n", GetMouseWheelRotVol());
+	for (int y = 0; y < mcg_.IMAGE_TILE_NUM.y; y++)
 	{
-		for (int x = 0; x < MAP_CHIP_NUM_WIDTH; x++)
+		for (int x = 0; x < mcg_.IMAGE_TILE_NUM.x; x++)
 		{
-			
 			if (isAlpha)
 			{
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 500);
 
-				DrawBox(TOP_LEFT_X + selected_.x * IMAGE_SIZE, selected_.y * IMAGE_SIZE,
-					TOP_LEFT_X + selected_.x * IMAGE_SIZE + IMAGE_SIZE, selected_.y * IMAGE_SIZE + IMAGE_SIZE,
+				DrawBox(mcg_.TOP_LEFT.x + selected_.x * mcg_.IMAGE_PX_SIZE, selected_.y * mcg_.IMAGE_PX_SIZE,
+					mcg_.TOP_LEFT.x + selected_.x * mcg_.IMAGE_PX_SIZE + mcg_.IMAGE_PX_SIZE, selected_.y * mcg_.IMAGE_PX_SIZE + mcg_.IMAGE_PX_SIZE,
 					0xff00ff, false, 2);
-				DrawBox(TOP_LEFT_X + selected_.x * IMAGE_SIZE, selected_.y * IMAGE_SIZE,
-					TOP_LEFT_X + selected_.x * IMAGE_SIZE + IMAGE_SIZE, selected_.y * IMAGE_SIZE + IMAGE_SIZE,
+				DrawBox(mcg_.TOP_LEFT.x + selected_.x * mcg_.IMAGE_PX_SIZE, selected_.y * mcg_.IMAGE_PX_SIZE,
+					mcg_.TOP_LEFT.x + selected_.x * mcg_.IMAGE_PX_SIZE + mcg_.IMAGE_PX_SIZE, selected_.y * mcg_.IMAGE_PX_SIZE + mcg_.IMAGE_PX_SIZE,
 					0xff00ff, true);
-				DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE + 1, TOP_LEFT_Y + y * IMAGE_SIZE + 1,
-					hImage_[x + y * MAP_CHIP_NUM_WIDTH], TRUE);
+
+
+
+				DrawGraph(mcg_.TOP_LEFT.x + x * mcg_.IMAGE_PX_SIZE,
+						  mcg_.TOP_LEFT.y + y * mcg_.IMAGE_PX_SIZE,
+						  hImage_[std::min(x + ScrollOffset_, mcg_.IMAGE_TILE_NUM.x - 1) + y * mcg_.IMAGE_TILE_NUM.x], TRUE);
 
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-				
 
-				DrawLine(TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y,
-					TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y + MAP_WINDOW_HEIGHT,
-					0xffffff);
-				DrawLine(TOP_LEFT_X, TOP_LEFT_Y + IMAGE_SIZE * y,
-					TOP_LEFT_X + MAP_WINDOW_WIDTH, TOP_LEFT_Y + IMAGE_SIZE * y,
-					0xffffff);
 
+				DrawLine(mcg_.TOP_LEFT.x + mcg_.IMAGE_PX_SIZE * x, mcg_.TOP_LEFT.y,
+					mcg_.TOP_LEFT.x + mcg_.IMAGE_PX_SIZE * x, mcg_.TOP_LEFT.y + mcg_.MAP_WINDOW_SIZE.y,
+					0xffffff);
+				DrawLine(mcg_.TOP_LEFT.x, mcg_.TOP_LEFT.y + mcg_.IMAGE_PX_SIZE * y,
+					mcg_.TOP_LEFT.x + mcg_.MAP_WINDOW_SIZE.x, mcg_.TOP_LEFT.y + mcg_.IMAGE_PX_SIZE * y,
+					0xffffff);
 			}
 			else
 			{
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 150);
 
-				DrawGraph(TOP_LEFT_X + x * IMAGE_SIZE + 1, TOP_LEFT_Y + y * IMAGE_SIZE + 1,
-							hImage_[x + y * MAP_CHIP_NUM_WIDTH], TRUE);
-				DrawLine(TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y,
-					TOP_LEFT_X + IMAGE_SIZE * x, TOP_LEFT_Y + MAP_WINDOW_HEIGHT,
+				DrawGraph(mcg_.TOP_LEFT.x + x * mcg_.IMAGE_PX_SIZE,
+						  mcg_.TOP_LEFT.y + y * mcg_.IMAGE_PX_SIZE,
+						  hImage_[x + y * mcg_.IMAGE_TILE_NUM.x], TRUE);
+
+				int verticalLineStartX = mcg_.TOP_LEFT.x + mcg_.IMAGE_PX_SIZE * x;
+
+				DrawLine(verticalLineStartX, mcg_.TOP_LEFT.y,
+					verticalLineStartX, mcg_.TOP_LEFT.y + mcg_.MAP_WINDOW_SIZE.y,
 					0xffffff);
-				DrawLine(TOP_LEFT_X, TOP_LEFT_Y + IMAGE_SIZE * y,
-					TOP_LEFT_X + MAP_WINDOW_WIDTH, TOP_LEFT_Y + IMAGE_SIZE * y,
+
+				DrawLine(mcg_.TOP_LEFT.x, mcg_.TOP_LEFT.y + mcg_.IMAGE_PX_SIZE * y,
+					mcg_.TOP_LEFT.x + mcg_.MAP_WINDOW_SIZE.x, mcg_.TOP_LEFT.y + mcg_.IMAGE_PX_SIZE * y,
 					0xffffff);
 
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 			}
 		}
 	}
-	DrawBox(TOP_LEFT_X, TOP_LEFT_Y, RIGHT_BOTTOM_X, RIGHT_BOTTOM_Y, FLAME_COLOR, FALSE, 3);
+	MyDxLib::DrawBox(mcg_.TOP_LEFT, mcg_.RIGHT_BOTTOM, mcg_.FLAME_COLOR, false, 3);
 
 	if (isHold_)
 	{
-		DrawExtendGraph(mousePosition_.x, mousePosition_.y,
-			mousePosition_.x + IMAGE_SIZE, mousePosition_.y + IMAGE_SIZE,
+		MyDxLib::DrawExtendGraph(mousePosition_, { mcg_.IMAGE_PX_SIZE, mcg_.IMAGE_PX_SIZE },
 			hImage_[heldIndex_], true);
 	}
 }
@@ -188,5 +200,22 @@ int MapChip::GetImageHandle(int _Index)
 		return -1;
 	}
 	return hImage_[_Index];
+}
+
+Vector2D<int> MapChip::GetViewOrigin() const
+{
+
+	return Vector2D<int>();
+}
+
+bool MapChip::IsInChipArea(const Vector2D<int>& _mouse)
+{
+	return (_mouse.x >= mcg_.TOP_LEFT.x && _mouse.y >= mcg_.TOP_LEFT.y && _mouse.x <= mcg_.RIGHT_BOTTOM.x && _mouse.y <= mcg_.RIGHT_BOTTOM.y);
+}
+
+Vector2D<int> MapChip::ScreenToMapIndex(const Vector2D<int>& _mouse)
+{
+	return { (_mouse.x - (Screen::WIDTH - mcg_.MAP_WINDOW_SIZE.x)) / mcg_.IMAGE_PX_SIZE,
+			  _mouse.y / mcg_.IMAGE_PX_SIZE };
 }
 
