@@ -26,6 +26,6 @@ const MapChipConfig& LoadMapChipConfig(const std::string _iniPath)
 
 	conf.TOP_LEFT = { Screen::WIDTH - conf.MAP_WINDOW_SIZE.x, 0 };
 	
-	conf.RIGHT_BOTTOM = { Screen::WIDTH, conf.MAP_WINDOW_SIZE.y };
+	conf.BOTTOM_RIGHT = { Screen::WIDTH, conf.MAP_WINDOW_SIZE.y };
 	return conf;
 }

@@ -163,6 +163,7 @@
     <ClInclude Include="Source\Input.h" />
     <ClInclude Include="Source\MapChipConfig.hpp" />
     <ClInclude Include="Source\MapEdit.hpp" />
+    <ClInclude Include="Source\MapEditorConfig.hpp" />
     <ClInclude Include="Source\MousePointer.hpp" />
     <ClInclude Include="Source\Rect.hpp" />
     <ClInclude Include="Source\Screen.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="Source\MapChipConfig.cpp" />
     <ClCompile Include="Source\MapEdit.cpp" />
     <ClCompile Include="Source\MapChip.cpp" />
+    <ClCompile Include="Source\MapEditorConfig.cpp" />
     <ClCompile Include="Source\MousePointer.cpp" />
     <ClCompile Include="Source\PlayScene.cpp" />
     <ClCompile Include="Source\SceneFactory.cpp" />

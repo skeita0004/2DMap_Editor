@@ -7,6 +7,7 @@
 #include "Vector2.h"
 #include "Rect.hpp"
 #include <Windows.h>
+#include "MapEditorConfig.hpp"
 
 class MapChip;
 
@@ -40,4 +41,7 @@ private:
 	float deleteTimer_; // cu
 	int hAlert_;
 	int hDelMessage_;
+
+	MapEditorConfig mec_;
+
 };

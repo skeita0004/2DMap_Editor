@@ -9,29 +9,21 @@
 #include <iostream>
 #include "CsvReader.h"
 
-namespace
-{
-	constexpr int MAP_CHIP_NUM_WIDTH{ 20 };  // マップエディタ横方向の最大チップ数
-	constexpr int MAP_CHIP_NUM_HEIGHT{ 20 }; // マップエディタ縦方向の最大チップ数
-	constexpr int IMAGE_SIZE{ 32 }; // チップの画素数（正方形前提）
-	constexpr int MAP_EDITOR_WIDTH{ MAP_CHIP_NUM_WIDTH * IMAGE_SIZE };
-	constexpr int MAP_EDITOR_HEIGHT{ MAP_CHIP_NUM_HEIGHT * IMAGE_SIZE };
-	constexpr int MAP_EDITOR_TOP_MARGIN{ (Screen::HEIGHT - MAP_CHIP_NUM_HEIGHT * IMAGE_SIZE) / 2 };
-	constexpr int MAP_EDITOR_LEFT_MARGIN{ 240 };
-}
-
 MapEdit::MapEdit() :
 	GameObject(),
-	myMap_(MAP_CHIP_NUM_WIDTH* MAP_CHIP_NUM_HEIGHT, -1),
-	mapEditRect_({ MAP_EDITOR_LEFT_MARGIN, MAP_EDITOR_TOP_MARGIN }, { MAP_EDITOR_WIDTH, MAP_EDITOR_HEIGHT }),
+	myMap_(0, -1),
+	mapEditRect_({{1, 1},{1, 1}}),
 	isOnMapEdit_(false),
 	myMapIsEmpty_(true),
 	canDelete_(false),
 	eraseIndex_(0),
 	deleteTimer_(0.f),
 	hAlert_(-1),
-	hDelMessage_(-1)
+	hDelMessage_(-1),
+	mec_(GetMapEditorConfig())
 {
+	myMap_.resize( mec_.IMAGE_TILE_NUM.x * mec_.IMAGE_TILE_NUM.y );
+	mapEditRect_ = {{ mec_.LEFT_POSITION_MARGIN, mec_.TOP_POSITION_MARGIN }, { mec_.AREA_PX_SIZE.x, mec_.AREA_PX_SIZE.y }};
 	eraseIndex_ = myMap_.size();
 	hAlert_ = LoadGraph("Assets/img/mapDelAlert.png");
 	hDelMessage_ = LoadGraph("Assets/img/mapDelMessage.png");
@@ -43,25 +35,25 @@ MapEdit::~MapEdit()
 
 void MapEdit::SetMap(VECTOR2INT _pos, int _value)
 {
-	assert(_pos.x >= 0 && _pos.x < MAP_CHIP_NUM_WIDTH);
-	assert(_pos.y >= 0 && _pos.y < MAP_CHIP_NUM_HEIGHT);
+	assert(_pos.x >= 0 && _pos.x < mec_.IMAGE_TILE_NUM.x);
+	assert(_pos.y >= 0 && _pos.y < mec_.IMAGE_TILE_NUM.y);
 
-	myMap_[_pos.y * MAP_CHIP_NUM_WIDTH + _pos.x] = _value;
+	myMap_[_pos.y * mec_.IMAGE_TILE_NUM.x + _pos.x] = _value;
 }
 
 int MapEdit::GetMap(VECTOR2INT _pos) const
 {
-	assert(_pos.x >= 0 && _pos.x < MAP_CHIP_NUM_WIDTH);
-	assert(_pos.y >= 0 && _pos.y < MAP_CHIP_NUM_HEIGHT);
-	return myMap_[_pos.y * MAP_CHIP_NUM_WIDTH + _pos.x];
+	assert(_pos.x >= 0 && _pos.x < mec_.IMAGE_TILE_NUM.x);
+	assert(_pos.y >= 0 && _pos.y < mec_.IMAGE_TILE_NUM.y);
+	return myMap_[_pos.y * mec_.IMAGE_TILE_NUM.x + _pos.x];
 }
 
 void MapEdit::Update()
 {
 	GetMousePoint(&mousePosition_.x, &mousePosition_.y);
 
-	selected.x = (mousePosition_.x - MAP_EDITOR_LEFT_MARGIN) / IMAGE_SIZE;
-	selected.y = (mousePosition_.y - MAP_EDITOR_TOP_MARGIN) / IMAGE_SIZE;
+	selected.x = (mousePosition_.x - mec_.LEFT_POSITION_MARGIN) / mec_.IMAGE_PX_SIZE;
+	selected.y = (mousePosition_.y - mec_.TOP_POSITION_MARGIN) / mec_.IMAGE_PX_SIZE;
 
 
 #pragma region PutTile
@@ -84,7 +76,7 @@ void MapEdit::Update()
 				{
 					if (Input::IsKeyHold(KEY_INPUT_F))
 					{
-						FillTile(GetMap({static_cast<int>(selected.x), static_cast<int>(selected.y)}), mapChip_->GetHoldImage(), selected.y * MAP_CHIP_NUM_WIDTH + selected.x);
+						FillTile(GetMap({static_cast<int>(selected.x), static_cast<int>(selected.y)}), mapChip_->GetHoldImage(), selected.y * mec_.IMAGE_TILE_NUM.x + selected.x);
 					}
 					if (mapChip_ && mapChip_->GetIsHold())
 					{
@@ -140,15 +132,15 @@ void MapEdit::Draw()
 		int sizeX = mapEditRect_.imageSize.x;
 		int sizeY = mapEditRect_.imageSize.y;
 
-		for (int y = 0; y < MAP_CHIP_NUM_HEIGHT; y++)
+		for (int y = 0; y < mec_.IMAGE_TILE_NUM.y; y++)
 		{
-			for (int x = 0; x < MAP_CHIP_NUM_WIDTH; x++)
+			for (int x = 0; x < mec_.IMAGE_TILE_NUM.x; x++)
 			{
 				int hImage = GetMap({ x, y });
 				if (hImage > -1)
 				{
-					DrawGraph(MAP_EDITOR_LEFT_MARGIN + x * IMAGE_SIZE,
-						MAP_EDITOR_TOP_MARGIN + y * IMAGE_SIZE,
+					DrawGraph(mec_.LEFT_POSITION_MARGIN + x * mec_.IMAGE_PX_SIZE,
+						mec_.TOP_POSITION_MARGIN + y * mec_.IMAGE_PX_SIZE,
 						hImage, TRUE);
 				}
 			}
@@ -158,10 +150,10 @@ void MapEdit::Draw()
 		{
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 200);
 			//DrawBox(posX, posY, posX + sizeX, posY + sizeY, 0xff00ff, TRUE);
-			DrawBox(MAP_EDITOR_LEFT_MARGIN + (selected.x * IMAGE_SIZE),
-				MAP_EDITOR_TOP_MARGIN + (selected.y * IMAGE_SIZE),
-				MAP_EDITOR_LEFT_MARGIN + (selected.x * IMAGE_SIZE + IMAGE_SIZE),
-				MAP_EDITOR_TOP_MARGIN + (selected.y * IMAGE_SIZE + IMAGE_SIZE),
+			DrawBox(mec_.LEFT_POSITION_MARGIN + (selected.x * mec_.IMAGE_PX_SIZE),
+				mec_.TOP_POSITION_MARGIN + (selected.y * mec_.IMAGE_PX_SIZE),
+				mec_.LEFT_POSITION_MARGIN + (selected.x * mec_.IMAGE_PX_SIZE + mec_.IMAGE_PX_SIZE),
+				mec_.TOP_POSITION_MARGIN + (selected.y * mec_.IMAGE_PX_SIZE + mec_.IMAGE_PX_SIZE),
 				0x00ffff, true, 2);
 			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		}
@@ -173,17 +165,17 @@ void MapEdit::Draw()
 				0x11ffdf, FALSE, 3);
 
 
-		for (int i = 1; i < MAP_EDITOR_WIDTH / IMAGE_SIZE; i++)
+		for (int i = 1; i < mec_.AREA_PX_SIZE.x / mec_.IMAGE_PX_SIZE; i++)
 		{
-			DrawLine(MAP_EDITOR_LEFT_MARGIN + i * IMAGE_SIZE, MAP_EDITOR_TOP_MARGIN,
-						MAP_EDITOR_LEFT_MARGIN + i * IMAGE_SIZE, MAP_EDITOR_TOP_MARGIN + MAP_EDITOR_HEIGHT,
+			DrawLine(mec_.LEFT_POSITION_MARGIN + i * mec_.IMAGE_PX_SIZE, mec_.TOP_POSITION_MARGIN,
+						mec_.LEFT_POSITION_MARGIN + i * mec_.IMAGE_PX_SIZE, mec_.TOP_POSITION_MARGIN + mec_.AREA_PX_SIZE.y,
 						0xffeedd, 1);
 		}
 
-		for (int i = 1; i < MAP_EDITOR_HEIGHT / IMAGE_SIZE; i++)
+		for (int i = 1; i < mec_.AREA_PX_SIZE.y / mec_.IMAGE_PX_SIZE; i++)
 		{
-			DrawLine(MAP_EDITOR_LEFT_MARGIN, MAP_EDITOR_TOP_MARGIN + i * IMAGE_SIZE,
-					MAP_EDITOR_LEFT_MARGIN + MAP_EDITOR_WIDTH, MAP_EDITOR_TOP_MARGIN + i * IMAGE_SIZE,
+			DrawLine(mec_.LEFT_POSITION_MARGIN, mec_.TOP_POSITION_MARGIN + i * mec_.IMAGE_PX_SIZE,
+					mec_.LEFT_POSITION_MARGIN + mec_.AREA_PX_SIZE.x, mec_.TOP_POSITION_MARGIN + i * mec_.IMAGE_PX_SIZE,
 						0xffeedd, 1);
 		}
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -221,15 +213,15 @@ void MapEdit::SaveMapData()
 	MapChip* mc = FindGameObject<MapChip>();
 
 	file << "#HEAD,\t" << "\n";
-	file << "WIDTH,\t" << MAP_CHIP_NUM_WIDTH << "," << "\n";
-	file << "HEIGHT,\t" << MAP_CHIP_NUM_HEIGHT << "," << "\n";
+	file << "WIDTH,\t" << mec_.IMAGE_TILE_NUM.x << "," << "\n";
+	file << "HEIGHT,\t" << mec_.IMAGE_TILE_NUM.y << "," << "\n";
 	file << ",\n";
 	file << "#DATA, " << "\n";
 	for (auto& mapData : myMap_)
 	{
 		colCount++;
 		file << mc->GetChipIndex(mapData) << ",\t";
-		if (colCount == MAP_CHIP_NUM_WIDTH)
+		if (colCount == mec_.IMAGE_TILE_NUM.x)
 		{
 			file << "\n";
 			colCount = 0;
@@ -290,11 +282,11 @@ void MapEdit::OpenMapData()
 		// そのまま入れられるんだけど、インデックスをハンドルにする必要がある
 		// あと、ヘッダを読み飛ばすので、その分のオフセットは必要。
 		//
-		for (int y = 0; y < MAP_CHIP_NUM_HEIGHT; y++)
+		for (int y = 0; y < mec_.IMAGE_TILE_NUM.y; y++)
 		{
-			for (int x = 0; x < MAP_CHIP_NUM_WIDTH; x++)
+			for (int x = 0; x < mec_.IMAGE_TILE_NUM.x; x++)
 			{
-				myMap_[y * MAP_CHIP_NUM_WIDTH + x] = mc->GetImageHandle(csv.GetInt(y + dataStartLine, x));
+				myMap_[y * mec_.IMAGE_TILE_NUM.x + x] = mc->GetImageHandle(csv.GetInt(y + dataStartLine, x));
 			}
 		}
 	}
@@ -349,8 +341,8 @@ void MapEdit::FillTile(const int _hChoseImage, const int _hFillImage, const int 
 		return;
 	}
 
-	int upIndex = _choseMapIndex - MAP_CHIP_NUM_WIDTH;
-	int downIndex = _choseMapIndex + MAP_CHIP_NUM_WIDTH;
+	int upIndex = _choseMapIndex - mec_.IMAGE_TILE_NUM.x;
+	int downIndex = _choseMapIndex + mec_.IMAGE_TILE_NUM.x;
 	int leftIndex = _choseMapIndex - 1;
 	int rightIndex = _choseMapIndex + 1;
 

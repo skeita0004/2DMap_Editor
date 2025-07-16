@@ -28,6 +28,9 @@ public:
 	Vector2D<int> ScreenToMapIndex(const Vector2D<int>& _mouse);
 
 private:
+	void DrawMapChip(const int& _x, const int& _y);
+
+
 	std::vector<int> hImage_;
 	std::map<int, int> handleToIndex_;
 
@@ -38,5 +41,7 @@ private:
 
 	MapChipConfig mcg_;
 
-	int ScrollOffset_;
+	Vector2D<int> ScrollOffset_;
+
+	void ToLocalPos( Vector2D<float>& _pos );
 };

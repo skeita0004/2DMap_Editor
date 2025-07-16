@@ -11,7 +11,7 @@ struct MapChipConfig
 	int FLAME_COLOR;
 	Vector2D<int> MAP_WINDOW_SIZE;
 	Vector2D<int> TOP_LEFT;
-	Vector2D<int> RIGHT_BOTTOM;
+	Vector2D<int> BOTTOM_RIGHT;
 };
 
 // ŽQÆ‚ª•Ô‚Á‚Ä‚­‚é‚Ì‚ÅAŒvŽZ‚ªŒ¸‚é

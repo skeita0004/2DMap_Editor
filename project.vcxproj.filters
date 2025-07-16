@@ -62,6 +62,7 @@
     <ClCompile Include="Library\Command.cpp" />
     <ClCompile Include="Library\MyDxLib.cpp" />
     <ClCompile Include="Source\MapChipConfig.cpp" />
+    <ClCompile Include="Source\MapEditorConfig.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Screen.h" />
@@ -145,6 +146,7 @@
     <ClInclude Include="Library\Vector2D.hpp" />
     <ClInclude Include="Source\MapChipConfig.hpp" />
     <ClInclude Include="Source\Vector2Int.h" />
+    <ClInclude Include="Source\MapEditorConfig.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Library">
