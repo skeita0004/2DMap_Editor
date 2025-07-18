@@ -85,6 +85,10 @@ void MapEdit::Update()
 				}
 				if (Input::IsMouseHold(MOUSE_INPUT_MIDDLE))
 				{
+					if (Input::IsKeyHold(KEY_INPUT_F))
+					{
+						FillTile(GetMap({static_cast<int>(selected.x), static_cast<int>(selected.y)}), -1, selected.y * mec_.IMAGE_TILE_NUM.x + selected.x);
+					}
 					SetMap({ static_cast<int>(selected.x), static_cast<int>(selected.y) }, -1);
 				}
 			}
@@ -327,36 +331,51 @@ void MapEdit::DeleteMapData()
 	}
 }
 
-void MapEdit::FillTile(const int _hChoseImage, const int _hFillImage, const int _choseMapIndex)
+void MapEdit::FillTile(const int& _hChoseImage, const int& _hFillImage, int _choseMapIndex)
 {
-
+	// 範囲の限定
 	if (_choseMapIndex < 0 || myMap_.size() <= _choseMapIndex)
 	{
 		return;
 	}
 
-	if (myMap_[_choseMapIndex] != _hChoseImage
-		|| myMap_[_choseMapIndex] == _hChoseImage)
+	// 塗りつぶしに関係のないタイルを巻き込まない
+	// のと、塗りつぶしを範囲内に収める
+	if (myMap_[_choseMapIndex] != _hChoseImage || 
+		myMap_[_choseMapIndex] == _hFillImage)
 	{
 		return;
 	}
 
+	myMap_[_choseMapIndex] = _hFillImage;
+
 	int upIndex = _choseMapIndex - mec_.IMAGE_TILE_NUM.x;
 	int downIndex = _choseMapIndex + mec_.IMAGE_TILE_NUM.x;
-	int leftIndex = _choseMapIndex - 1;
-	int rightIndex = _choseMapIndex + 1;
-
 	
 	// forでできそう
 	// 上方向
-	FillTile(_hChoseImage, _hFillImage, upIndex);
+	FillTile(_hChoseImage, _hFillImage, ToSafeNeighbor(_choseMapIndex, -mec_.IMAGE_TILE_NUM.x));
 
 	// 下方向
-	FillTile(_hChoseImage, _hFillImage, downIndex);
+	FillTile(_hChoseImage, _hFillImage, ToSafeNeighbor(_choseMapIndex, mec_.IMAGE_TILE_NUM.x));
 
 	// 左方向
-	FillTile(_hChoseImage, _hFillImage, leftIndex);
+	FillTile(_hChoseImage, _hFillImage, ToSafeNeighbor(_choseMapIndex, -1));
 
 	// 右方向
-	FillTile(_hChoseImage, _hFillImage, rightIndex);
+	FillTile(_hChoseImage, _hFillImage, ToSafeNeighbor(_choseMapIndex, 1));
+}
+
+int MapEdit::ToSafeNeighbor(const int _from, const int _to)
+{
+	VECTOR2INT linerBaseMap{_from % mec_.IMAGE_TILE_NUM.x, _from / mec_.IMAGE_TILE_NUM.y};
+	VECTOR2INT nextPos{(_from + _to) % mec_.IMAGE_TILE_NUM.x,(_from + _to) / mec_.IMAGE_TILE_NUM.y};
+
+	// 左方向のフチ右方向のフチ
+	if ((linerBaseMap.x - nextPos.x) * (linerBaseMap.x - nextPos.x) > 1)
+	{
+		return -1;
+	}
+
+	return _from + _to;
 }

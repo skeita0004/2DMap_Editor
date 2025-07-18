@@ -70,8 +70,7 @@ void MapChip::Update()
 		if (Input::IsMouseDown(MOUSE_INPUT_LEFT))
 		{
 			isHold_ = true;
-			ToLocalPos(selected_);
-			heldIndex_ = selected_.y * mcg_.MAP_CHIP_NUM.x + selected_.x;
+			heldIndex_ = selected_.x + std::min(ScrollOffset_.x, mcg_.IMAGE_TILE_NUM.x - 1) + std::min(selected_.y + abs(ScrollOffset_.y), mcg_.IMAGE_TILE_NUM.y - 1) * mcg_.IMAGE_TILE_NUM.x;
 		}
 	}
 	else

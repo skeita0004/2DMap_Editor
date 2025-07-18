@@ -37,7 +37,7 @@ private:
 	Vector2D<int> mousePosition_;
 	bool isHold_;
 	int heldIndex_;
-	Vector2D<float> selected_;
+	Vector2D<int> selected_;
 
 	MapChipConfig mcg_;
 

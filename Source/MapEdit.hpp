@@ -26,9 +26,15 @@ public:
 	void OpenMapData();
 	void DeleteMapData();
 
-	void FillTile(const int _hChoseImage, const int _hFillImage, const int _choseMapIndex);
 private:
 	//int *hImage_; //背景画像のハンドル配列へのポインタ
+
+	/// @brief FillTile
+	/// @param _hChoseImage   選んだ場所の画像ハンドル
+	/// @param _hFillImage    塗りつぶしの画像
+	/// @param _choseMapIndex 選んだ場所のインデックス
+	void FillTile(const int& _hChoseImage, const int& _hFillImage, int _choseMapIndex);
+	int ToSafeNeighbor(const int _from, const int _to);
 
 	std::vector<int> myMap_;
 	Rect mapEditRect_;
