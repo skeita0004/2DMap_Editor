@@ -22,15 +22,8 @@ public:
 	int GetChipIndex(int _handle);
 	int GetImageHandle(int _Index);
 
-	Vector2D<int> GetViewOrigin() const;
-	bool IsInChipArea(const Vector2D<int>& _mouse);
-
-	Vector2D<int> ScreenToMapIndex(const Vector2D<int>& _mouse);
 
 private:
-	void DrawMapChip(const int& _x, const int& _y);
-
-
 	std::vector<int> hImage_;
 	std::map<int, int> handleToIndex_;
 
@@ -39,9 +32,26 @@ private:
 	int heldIndex_;
 	Vector2D<int> selected_;
 
-	MapChipConfig mcg_;
+	MapChipConfig toolAreaConf_;
 
 	Vector2D<int> ScrollOffset_;
 
-	void ToLocalPos( Vector2D<float>& _pos );
+	Vector2D<int> GetViewOrigin() const;
+	bool IsInChipArea(const Vector2D<int>& _mouse);
+
+	/// @brief スクリーン座標をマップパレットのインデックスに変化する
+	/// @param _mouse マウス座標
+	/// @return インデックス
+	Vector2D<int> ScreenToMapIndex(const Vector2D<int>& _mouse);
+	
+	/// @brief マップパレットのスクロール操作
+	void PalletScroll();
+
+	/// @brief マップチップの描画
+	/// @param _x 選択場所ⅹ
+	/// @param _y 選択場所y
+	void DrawMapChip(const int _x, const int _y);
+
+	/// @brief マップパレット領域の描画
+	void DrawMapPallet();
 };

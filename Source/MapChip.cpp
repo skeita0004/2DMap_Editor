@@ -7,10 +7,7 @@
 #include "../Library/MyDxLib.hpp"
 #include <algorithm>
 
-namespace
-{
-	bool isAlpha = false;
-}
+// コードをより良いものにしようのコーナー
 
 MapChip::MapChip() :
 	GameObject(),
@@ -20,28 +17,24 @@ MapChip::MapChip() :
 	isHold_(false),
 	heldIndex_(-1),
 	selected_({0, 0}),
-	mcg_(GetMapChipConfig()),
+	toolAreaConf_(GetMapChipConfig()),
 	ScrollOffset_({0, 0})
 {
-	char buff[255];
-	GetPrivateProfileStringA("MapChip", "Title", "game", 
-							 buff, sizeof(buff), "./profile.ini");
-	//int a = GetPrivateProfileIntA("MapChip", "ImageSize", 32, "./profile.ini");
-	hImage_ = std::vector<int>(mcg_.IMAGE_TILE_NUM.x * mcg_.IMAGE_TILE_NUM.y, -1);
-	handleToIndex_.clear();
+	hImage_ = std::vector<int>(toolAreaConf_.IMAGE_TILE_NUM.x * toolAreaConf_.IMAGE_TILE_NUM.y, -1);
 
 	LoadDivGraph("Assets/img/bg.png",
-		mcg_.IMAGE_TILE_NUM.x * mcg_.IMAGE_TILE_NUM.y,
-		mcg_.IMAGE_TILE_NUM.x, mcg_.IMAGE_TILE_NUM.y,
-		mcg_.IMAGE_PX_SIZE, mcg_.IMAGE_PX_SIZE,
+		toolAreaConf_.IMAGE_TILE_NUM.x * toolAreaConf_.IMAGE_TILE_NUM.y,
+		toolAreaConf_.IMAGE_TILE_NUM.x, toolAreaConf_.IMAGE_TILE_NUM.y,
+		toolAreaConf_.IMAGE_PX_SIZE, toolAreaConf_.IMAGE_PX_SIZE,
 		hImage_.data());
 
+	handleToIndex_.clear();
+
+	// ハンドルとインデックスの紐づけ
 	for (int i = 0; i < hImage_.size(); i++)
 	{
 		handleToIndex_.insert(std::make_pair(hImage_[i], i));
 	}
-
-	std::map<int, int> handleDatabase();
 }
 
 MapChip::~MapChip()
@@ -54,103 +47,41 @@ MapChip::~MapChip()
 			image = -1;
 		}
 	}
+	hImage_.clear();
 }
 
 void MapChip::Update()
 {
 	GetMousePoint(&mousePosition_.x, &mousePosition_.y);
-
 	selected_ = ScreenToMapIndex(mousePosition_);
-
-#pragma region IsInMapChipArea_
 
 	if (IsInChipArea(mousePosition_))
 	{
-		isAlpha = true;
+		PalletScroll();
 		if (Input::IsMouseDown(MOUSE_INPUT_LEFT))
 		{
 			isHold_ = true;
-			heldIndex_ = selected_.x + std::min(ScrollOffset_.x, mcg_.IMAGE_TILE_NUM.x - 1) + std::min(selected_.y + abs(ScrollOffset_.y), mcg_.IMAGE_TILE_NUM.y - 1) * mcg_.IMAGE_TILE_NUM.x;
-		}
-	}
-	else
-	{
-		isAlpha = false;
-	}
-
-	if (isAlpha)
-	{
-		if (Input::IsMouseDown(MOUSE_INPUT_RIGHT))
-		{
-			heldIndex_ = -1;
+			heldIndex_ = selected_.x + std::min(ScrollOffset_.x, toolAreaConf_.IMAGE_TILE_NUM.x - 1) + std::min(selected_.y + abs(ScrollOffset_.y), toolAreaConf_.IMAGE_TILE_NUM.y - 1) * toolAreaConf_.IMAGE_TILE_NUM.x;
 		}
 	}
 
-	if (Input::IsKeyDown(KEY_INPUT_LEFT))
+	if (Input::IsMouseDown(MOUSE_INPUT_RIGHT))
 	{
-		ScrollOffset_.x = std::max(0, ScrollOffset_.x - 1);
+		heldIndex_ = -1;
 	}
-	if (Input::IsKeyDown(KEY_INPUT_RIGHT))
-	{
-		ScrollOffset_.x = std::min(mcg_.MAP_CHIP_NUM.x, ScrollOffset_.x + 1); // 一行で済む
-	}
-
-	if (Input::IsKeyDown( KEY_INPUT_UP ))
-	{
-		ScrollOffset_.y += 1;
-		ScrollOffset_.y = std::clamp<int>( ScrollOffset_.y, -mcg_.MAP_CHIP_NUM.y, 0 );
-	}
-	if (Input::IsKeyDown( KEY_INPUT_DOWN ))
-	{
-		ScrollOffset_.y -= 1;
-		ScrollOffset_.y = std::clamp<int>(ScrollOffset_.y, -mcg_.MAP_CHIP_NUM.y, 0); // 二行もいる
-	}
-#pragma endregion
 }
 
 void MapChip::Draw()
 {
-	for (int y = 0; y < mcg_.IMAGE_TILE_NUM.y; y++)
-	{
-		for (int x = 0; x < mcg_.IMAGE_TILE_NUM.x; x++)
-		{
-			if (isAlpha)
-			{
-				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+	DrawMapPallet();
 
-				DrawBox(mcg_.TOP_LEFT.x + selected_.x * mcg_.IMAGE_PX_SIZE, selected_.y * mcg_.IMAGE_PX_SIZE,
-					mcg_.TOP_LEFT.x + selected_.x * mcg_.IMAGE_PX_SIZE + mcg_.IMAGE_PX_SIZE, selected_.y * mcg_.IMAGE_PX_SIZE + mcg_.IMAGE_PX_SIZE,
-					0xff00ff, false, 2);
-				DrawBox(mcg_.TOP_LEFT.x + selected_.x * mcg_.IMAGE_PX_SIZE, selected_.y * mcg_.IMAGE_PX_SIZE,
-					mcg_.TOP_LEFT.x + selected_.x * mcg_.IMAGE_PX_SIZE + mcg_.IMAGE_PX_SIZE, selected_.y * mcg_.IMAGE_PX_SIZE + mcg_.IMAGE_PX_SIZE,
-					0xff00ff, true);
-
-				DrawMapChip( x, y );
-
-				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-			}
-			else
-			{
-				DrawMapChip( x, y );
-			}
-
-		}
-	}
-
-	for (int ly = 0; ly < mcg_.IMAGE_TILE_NUM.y * 2; ly++)
-	{
-		DrawLine( mcg_.TOP_LEFT.x, mcg_.TOP_LEFT.y + mcg_.IMAGE_PX_SIZE * ly,
-				  mcg_.TOP_LEFT.x + mcg_.MAP_WINDOW_SIZE.x, mcg_.TOP_LEFT.y + mcg_.IMAGE_PX_SIZE * ly,
-				  0xffffff );
-	}
-
-	MyDxLib::DrawBox(mcg_.TOP_LEFT, mcg_.BOTTOM_RIGHT, mcg_.FLAME_COLOR, false, 3);
-	MyDxLib::DrawBox( { mcg_.TOP_LEFT.x, mcg_.MAP_CHIP_NUM.y * mcg_.IMAGE_PX_SIZE }, { mcg_.BOTTOM_RIGHT.x, Screen::HEIGHT }, 0x0, true );
-
+	// 選択中のマップチップの描画
 	if (isHold_ && heldIndex_ != -1)
 	{
-		MyDxLib::DrawExtendGraph(mousePosition_, { mcg_.IMAGE_PX_SIZE, mcg_.IMAGE_PX_SIZE },
-			hImage_[heldIndex_], true);
+		MyDxLib::DrawExtendGraph(mousePosition_,
+								 { toolAreaConf_.IMAGE_PX_SIZE, toolAreaConf_.IMAGE_PX_SIZE },
+								 hImage_[heldIndex_],
+								 true);
 	}
 }
 
@@ -187,32 +118,106 @@ Vector2D<int> MapChip::GetViewOrigin() const
 
 bool MapChip::IsInChipArea(const Vector2D<int>& _mouse)
 {
-	return (_mouse.x >= mcg_.TOP_LEFT.x && _mouse.y >= mcg_.TOP_LEFT.y && _mouse.x <= mcg_.BOTTOM_RIGHT.x && _mouse.y <= mcg_.BOTTOM_RIGHT.y);
+	return (_mouse.x >= toolAreaConf_.TOP_LEFT.x && _mouse.y >= toolAreaConf_.TOP_LEFT.y && _mouse.x <= toolAreaConf_.BOTTOM_RIGHT.x && _mouse.y <= toolAreaConf_.BOTTOM_RIGHT.y);
 }
 
 Vector2D<int> MapChip::ScreenToMapIndex(const Vector2D<int>& _mouse)
 {
-	return { (_mouse.x - (Screen::WIDTH - mcg_.MAP_WINDOW_SIZE.x)) / mcg_.IMAGE_PX_SIZE,
-			  _mouse.y / mcg_.IMAGE_PX_SIZE };
+	return { (_mouse.x - (Screen::WIDTH - toolAreaConf_.MAP_WINDOW_SIZE.x)) / toolAreaConf_.IMAGE_PX_SIZE,
+			  _mouse.y / toolAreaConf_.IMAGE_PX_SIZE };
 }
 
-void MapChip::DrawMapChip(const int& _x, const int& _y)
+void MapChip::DrawMapChip(const int _x, const int _y)
 {
 	int x = _x;
 	int y = _y;
-	DrawGraph(mcg_.TOP_LEFT.x + x * mcg_.IMAGE_PX_SIZE,
-			 (mcg_.TOP_LEFT.y + y ) * mcg_.IMAGE_PX_SIZE,
-			 hImage_[std::min( x + ScrollOffset_.x, mcg_.IMAGE_TILE_NUM.x - 1 ) + std::min(y + abs(ScrollOffset_.y), mcg_.IMAGE_TILE_NUM.y - 1) * mcg_.IMAGE_TILE_NUM.x], TRUE );
+	
+	int index = std::min(x + ScrollOffset_.x, toolAreaConf_.IMAGE_TILE_NUM.x - 1) + std::min(y + abs(ScrollOffset_.y), toolAreaConf_.IMAGE_TILE_NUM.y - 1) * toolAreaConf_.IMAGE_TILE_NUM.x;
+	
+	DrawGraph(toolAreaConf_.TOP_LEFT.x + x * toolAreaConf_.IMAGE_PX_SIZE,
+			 (toolAreaConf_.TOP_LEFT.y + y ) * toolAreaConf_.IMAGE_PX_SIZE,
+			 hImage_[index], TRUE );
 
-	int verticalLineStartX = mcg_.TOP_LEFT.x + mcg_.IMAGE_PX_SIZE * x;
+	int verticalLineStartX = toolAreaConf_.TOP_LEFT.x + toolAreaConf_.IMAGE_PX_SIZE * x;
+	int horizontalLineStartY = toolAreaConf_.TOP_LEFT.y + toolAreaConf_.IMAGE_PX_SIZE * y;
 
-	DrawLine( verticalLineStartX, mcg_.TOP_LEFT.y,
-			  verticalLineStartX, mcg_.TOP_LEFT.y + mcg_.MAP_WINDOW_SIZE.y,
-			  0xffffff );
+	// Vertical Grid
+	DrawLine(verticalLineStartX,
+			 toolAreaConf_.TOP_LEFT.y,
+			 verticalLineStartX,
+			 toolAreaConf_.TOP_LEFT.y + toolAreaConf_.MAP_WINDOW_SIZE.y,
+			 0xffffff );
+
+	// Horizontal Grid
+	DrawLine(toolAreaConf_.TOP_LEFT.x,
+			 horizontalLineStartY,
+			 toolAreaConf_.TOP_LEFT.x + toolAreaConf_.MAP_WINDOW_SIZE.x,
+			 horizontalLineStartY,
+			 0xffffff);
 }
 
-void MapChip::ToLocalPos( Vector2D<float>& _pos )
+void MapChip::PalletScroll()
 {
-	_pos.x = _pos.x - ScrollOffset_.x;
-	_pos.y = _pos.y + abs(ScrollOffset_.y);
+	float mouseRot = GetMouseWheelRotVolF();
+	
+	bool mouseWheelFrontRot = mouseRot > 0;
+	bool mouseWheelBackRot = mouseRot < 0;
+	
+	bool horizontalScrollTrigger = Input::IsKeyHold(KEY_INPUT_LSHIFT) || Input::IsKeyHold(KEY_INPUT_RSHIFT);
+
+	if (horizontalScrollTrigger)
+	{
+		if (Input::IsKeyDown(KEY_INPUT_LEFT) || mouseWheelFrontRot)
+		{
+			ScrollOffset_.x = std::max(0, ScrollOffset_.x - 1);
+		}
+		if (Input::IsKeyDown(KEY_INPUT_RIGHT) || mouseWheelBackRot)
+		{
+			ScrollOffset_.x = std::min(toolAreaConf_.MAP_CHIP_NUM.x, ScrollOffset_.x + 1); // 一行で済む
+		}
+	}
+	else
+	{
+		if (Input::IsKeyDown(KEY_INPUT_UP) || mouseWheelFrontRot)
+		{
+			ScrollOffset_.y += 1;
+			ScrollOffset_.y = std::clamp<int>(ScrollOffset_.y, -toolAreaConf_.MAP_CHIP_NUM.y, 0);
+		}
+		if (Input::IsKeyDown(KEY_INPUT_DOWN) || mouseWheelBackRot)
+		{
+			ScrollOffset_.y -= 1;
+			ScrollOffset_.y = std::clamp<int>(ScrollOffset_.y, -toolAreaConf_.MAP_CHIP_NUM.y, 0); // 二行も必要
+		}
+	}
+}
+
+void MapChip::DrawMapPallet()
+{
+	for (int y = 0; y < toolAreaConf_.MAP_CHIP_NUM.y; y++)
+	{
+		for (int x = 0; x < toolAreaConf_.MAP_CHIP_NUM.x; x++)
+		{
+			if (IsInChipArea(mousePosition_))
+			{
+				DrawBox(toolAreaConf_.TOP_LEFT.x + selected_.x * toolAreaConf_.IMAGE_PX_SIZE, selected_.y * toolAreaConf_.IMAGE_PX_SIZE,
+						toolAreaConf_.TOP_LEFT.x + selected_.x * toolAreaConf_.IMAGE_PX_SIZE + toolAreaConf_.IMAGE_PX_SIZE, selected_.y * toolAreaConf_.IMAGE_PX_SIZE + toolAreaConf_.IMAGE_PX_SIZE,
+						0xff00ff, true);
+
+				DrawMapChip(x, y);
+			}
+			else
+			{
+				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 200);
+				DrawMapChip(x, y);
+				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			}
+
+		}
+	}
+
+	// マップパレット領域の外枠の描画
+	MyDxLib::DrawBox(toolAreaConf_.TOP_LEFT,
+					 toolAreaConf_.BOTTOM_RIGHT,
+					 toolAreaConf_.FLAME_COLOR,
+					 false, 3);
 }

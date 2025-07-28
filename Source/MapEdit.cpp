@@ -22,7 +22,7 @@ MapEdit::MapEdit() :
 	hDelMessage_(-1),
 	mec_(GetMapEditorConfig())
 {
-	myMap_.resize( mec_.IMAGE_TILE_NUM.x * mec_.IMAGE_TILE_NUM.y );
+	myMap_ = std::vector<int>(mec_.IMAGE_TILE_NUM.x * mec_.IMAGE_TILE_NUM.y, -1);
 	mapEditRect_ = {{ mec_.LEFT_POSITION_MARGIN, mec_.TOP_POSITION_MARGIN }, { mec_.AREA_PX_SIZE.x, mec_.AREA_PX_SIZE.y }};
 	eraseIndex_ = myMap_.size();
 	hAlert_ = LoadGraph("Assets/img/mapDelAlert.png");
@@ -30,7 +30,8 @@ MapEdit::MapEdit() :
 }
 
 MapEdit::~MapEdit()
-{	
+{
+
 }
 
 void MapEdit::SetMap(VECTOR2INT _pos, int _value)
